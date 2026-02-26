@@ -24,17 +24,49 @@ export default function LoginPage() {
         setLoading(true)
         setError("")
 
-        setTimeout(() => {
-            if (email === "admin@test.com") {
+        setTimeout(async () => {
+            const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+            const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+
+            // Local dev admin check
+            if (email === adminEmail && password === adminPassword) {
                 localStorage.setItem("role", "admin")
                 document.cookie = "auth-token=true; path=/; max-age=86400"
                 window.location.href = "/admin/dashboard"
-            } else if (email === "retailer@test.com") {
+                return
+            }
+
+            try {
+                // Backend API call
+                const response = await fetch("http://localhost:5000/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                })
+
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Invalid credentials")
+                }
+
+                localStorage.setItem("token", data.token)
+                localStorage.setItem("userId", data.user.id)
                 localStorage.setItem("role", "retailer")
+                localStorage.setItem("status", data.user.status)
                 document.cookie = "auth-token=true; path=/; max-age=86400"
-                window.location.href = "/retailer/dashboard"
-            } else {
-                setError("Invalid credentials. Please use admin@test.com or retailer@test.com")
+
+                // Status based routing
+                if (data.user.status === "draft") {
+                    window.location.href = "/onboarding"
+                } else if (data.user.status === "approved") {
+                    window.location.href = "/retailer/dashboard"
+                } else {
+                    window.location.href = "/retailer/status"
+                }
+
+            } catch (err: any) {
+                setError(err.message)
                 setLoading(false)
             }
         }, 1000)
@@ -53,7 +85,7 @@ export default function LoginPage() {
             {/* CONTENT LAYER */}
             <div className="min-h-screen flex bg-gradient-to-br from-[#1b2d1f] via-[#2f3e2f] to-[#1e2a1f] container mx-auto">
                 {/* Left Side - Visual Branding (Exact Reference Match) */}
-                <div className="hidden lg:flex w-1/2 items-center justify-center p-16">
+                <div className="hidden lg:flex w-1/2 items-center justify-center p-10">
                     {/* <img
                         src="https://raw.githubusercontent.com/anushk2026a/img-url/c6df7976948ff2cc5b9e5c2fe7d432b8540e7f3b/image.png"
                         alt="Fresh Shrimp Dish"
@@ -61,7 +93,7 @@ export default function LoginPage() {
                     /> */}
                     <div className="absolute inset-0 bg-black/30"></div>
 
-                    <div className="relative z-10 w-full h-full flex flex-col p-16">
+                    <div className="relative z-10 w-full h-full flex flex-col p-10">
                         {/* Logo Section */}
                         <div className="flex items-center gap-2 mb-16 select-none group cursor-pointer">
                             <div className="relative w-12 h-12 flex items-center justify-center">
@@ -163,7 +195,7 @@ export default function LoginPage() {
                                                 required
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="retailer@test.com"
+                                                placeholder={process.env.NEXT_PUBLIC_RETAILER_EMAIL || "retailer@test.com"}
                                                 className="w-full pl-14 pr-5 py-[18px] rounded-2xl bg-[#F0F2F4] border-transparent focus:bg-white focus:ring-2 focus:ring-[#FF6B00]/10 transition-all outline-none text-sm font-bold text-[#1A1A1A]"
                                             />
                                         </div>
@@ -222,7 +254,7 @@ export default function LoginPage() {
                             </form>
 
                             <p className="text-center text-sm text-[#868889] font-bold pt-6 tracking-tight">
-                                Looking to start business with us? <Link href="#" className="text-[#6CC51D] font-black hover:text-[#5BA819] transition-colors">Request access</Link>
+                                Looking to start business with us? <Link href="/register" className="text-[#6CC51D] font-black hover:text-[#5BA819] transition-colors">Request access</Link>
                             </p>
                         </div>
                     </div>
