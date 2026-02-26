@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
     Building2,
@@ -26,6 +26,9 @@ export default function OnboardingPage() {
     const [currentStep, setCurrentStep] = useState(0)
     const [loading, setLoading] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
+    const licenseInputRef = useRef<HTMLInputElement>(null)
+    const gstInputRef = useRef<HTMLInputElement>(null)
+    const [uploading, setUploading] = useState<{ [key: string]: boolean }>({})
 
     const [formData, setFormData] = useState({
         // Owner Details
@@ -71,6 +74,34 @@ export default function OnboardingPage() {
     const handleBack = () => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1)
+        }
+    }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "licenseUrl" | "gstCertificateUrl") => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setUploading(prev => ({ ...prev, [field]: true }))
+        const formDataUpload = new FormData()
+        formDataUpload.append("file", file)
+
+        try {
+            const response = await fetch("http://localhost:5000/api/upload", {
+                method: "POST",
+                body: formDataUpload
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setFormData(prev => ({ ...prev, [field]: data.url }))
+            } else {
+                alert("Upload failed. Please try again.")
+            }
+        } catch (error) {
+            console.error("Upload error:", error)
+            alert("Upload failed. Please check your connection.")
+        } finally {
+            setUploading(prev => ({ ...prev, [field]: false }))
         }
     }
 
@@ -375,16 +406,64 @@ export default function OnboardingPage() {
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2 text-center">
                                         <label className="text-sm font-bold text-[#495057]">Upload Business License</label>
-                                        <div className="border border-dashed border-[#DEE2E6] rounded-xl p-6 hover:bg-[#F8F9FA] transition-all cursor-pointer group mt-2">
-                                            <Upload className="mx-auto text-[#868E96]" size={20} />
-                                            <p className="text-xs text-[#868E96] mt-1 font-bold">PDF, Image</p>
+                                        <input
+                                            type="file"
+                                            ref={licenseInputRef}
+                                            className="hidden"
+                                            accept=".pdf,image/*"
+                                            onChange={(e) => handleFileChange(e, "licenseUrl")}
+                                        />
+                                        <div
+                                            onClick={() => licenseInputRef.current?.click()}
+                                            className={cn(
+                                                "border border-dashed rounded-xl p-6 transition-all cursor-pointer group mt-2 flex flex-col items-center justify-center min-h-[120px]",
+                                                formData.licenseUrl ? "bg-green-50 border-green-200" : "border-[#DEE2E6] hover:bg-[#F8F9FA]"
+                                            )}
+                                        >
+                                            {uploading["licenseUrl"] ? (
+                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#FF6B00]"></div>
+                                            ) : formData.licenseUrl ? (
+                                                <>
+                                                    <CheckCircle2 className="text-green-500 mb-1" size={20} />
+                                                    <p className="text-[10px] text-green-600 font-bold uppercase">Uploaded</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="mx-auto text-[#868E96] group-hover:text-[#FF6B00] transition-colors" size={20} />
+                                                    <p className="text-xs text-[#868E96] mt-1 font-bold">PDF, Image</p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="space-y-2 text-center">
                                         <label className="text-sm font-bold text-[#495057]">Upload GST Certificate</label>
-                                        <div className="border border-dashed border-[#DEE2E6] rounded-xl p-6 hover:bg-[#F8F9FA] transition-all cursor-pointer group mt-2">
-                                            <Upload className="mx-auto text-[#868E96]" size={20} />
-                                            <p className="text-xs text-[#868E96] mt-1 font-bold">PDF, Image</p>
+                                        <input
+                                            type="file"
+                                            ref={gstInputRef}
+                                            className="hidden"
+                                            accept=".pdf,image/*"
+                                            onChange={(e) => handleFileChange(e, "gstCertificateUrl")}
+                                        />
+                                        <div
+                                            onClick={() => gstInputRef.current?.click()}
+                                            className={cn(
+                                                "border border-dashed rounded-xl p-6 transition-all cursor-pointer group mt-2 flex flex-col items-center justify-center min-h-[120px]",
+                                                formData.gstCertificateUrl ? "bg-green-50 border-green-200" : "border-[#DEE2E6] hover:bg-[#F8F9FA]"
+                                            )}
+                                        >
+                                            {uploading["gstCertificateUrl"] ? (
+                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#FF6B00]"></div>
+                                            ) : formData.gstCertificateUrl ? (
+                                                <>
+                                                    <CheckCircle2 className="text-green-500 mb-1" size={20} />
+                                                    <p className="text-[10px] text-green-600 font-bold uppercase">Uploaded</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="mx-auto text-[#868E96] group-hover:text-[#FF6B00] transition-colors" size={20} />
+                                                    <p className="text-xs text-[#868E96] mt-1 font-bold">PDF, Image</p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
