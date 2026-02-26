@@ -25,6 +25,8 @@ interface Retailer {
         legal?: {
             gst?: string;
             fssai?: string;
+            licenseUrl?: string;
+            gstCertificateUrl?: string;
         };
     };
 }
@@ -265,19 +267,41 @@ export default function RetailersPage() {
                                         <FileText size={14} /> Documents & Compliance
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 border rounded-2xl flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+                                        <div
+                                            onClick={() => selectedRetailer.businessDetails?.legal?.licenseUrl && window.open(selectedRetailer.businessDetails.legal.licenseUrl, "_blank")}
+                                            className={cn(
+                                                "p-4 border rounded-2xl flex items-center justify-between transition-colors",
+                                                selectedRetailer.businessDetails?.legal?.licenseUrl ? "hover:bg-gray-50 cursor-pointer border-blue-100 bg-blue-50/30" : "opacity-50 cursor-not-allowed bg-gray-50"
+                                            )}
+                                        >
                                             <div>
                                                 <p className="text-[10px] font-bold text-gray-400">BUSINESS LICENSE</p>
-                                                <p className="text-xs font-bold text-blue-600 uppercase">View File</p>
+                                                <p className={cn(
+                                                    "text-xs font-bold uppercase",
+                                                    selectedRetailer.businessDetails?.legal?.licenseUrl ? "text-blue-600" : "text-gray-400"
+                                                )}>
+                                                    {selectedRetailer.businessDetails?.legal?.licenseUrl ? "View File" : "No File"}
+                                                </p>
                                             </div>
-                                            <Eye size={16} className="text-gray-400" />
+                                            <Eye size={16} className={selectedRetailer.businessDetails?.legal?.licenseUrl ? "text-blue-600" : "text-gray-400"} />
                                         </div>
-                                        <div className="p-4 border rounded-2xl flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+                                        <div
+                                            onClick={() => selectedRetailer.businessDetails?.legal?.gstCertificateUrl && window.open(selectedRetailer.businessDetails.legal.gstCertificateUrl, "_blank")}
+                                            className={cn(
+                                                "p-4 border rounded-2xl flex items-center justify-between transition-colors",
+                                                selectedRetailer.businessDetails?.legal?.gstCertificateUrl ? "hover:bg-gray-50 cursor-pointer border-blue-100 bg-blue-50/30" : "opacity-50 cursor-not-allowed bg-gray-50"
+                                            )}
+                                        >
                                             <div>
                                                 <p className="text-[10px] font-bold text-gray-400">GST CERTIFICATE</p>
-                                                <p className="text-xs font-bold text-blue-600 uppercase">View File</p>
+                                                <p className={cn(
+                                                    "text-xs font-bold uppercase",
+                                                    selectedRetailer.businessDetails?.legal?.gstCertificateUrl ? "text-blue-600" : "text-gray-400"
+                                                )}>
+                                                    {selectedRetailer.businessDetails?.legal?.gstCertificateUrl ? "View File" : "No File"}
+                                                </p>
                                             </div>
-                                            <Eye size={16} className="text-gray-400" />
+                                            <Eye size={16} className={selectedRetailer.businessDetails?.legal?.gstCertificateUrl ? "text-blue-600" : "text-gray-400"} />
                                         </div>
                                     </div>
                                 </section>
