@@ -17,7 +17,8 @@ const useAuthStore = create(
 
                     if (typeof window !== "undefined") {
                         localStorage.setItem("token", data.token)
-                        localStorage.setItem("userId", data.user._id)
+                        localStorage.setItem("userId", data.user._id || data.user.id)
+                        localStorage.setItem("role", data.user.role)
                         localStorage.setItem("status", data.user.status)
                     }
 
@@ -43,7 +44,8 @@ const useAuthStore = create(
 
                     if (typeof window !== "undefined") {
                         localStorage.setItem("token", data.token)
-                        localStorage.setItem("userId", data.user._id)
+                        localStorage.setItem("userId", data.user._id || data.user.id)
+                        localStorage.setItem("role", data.user.role)
                         localStorage.setItem("status", data.user.status)
                     }
 
@@ -66,6 +68,7 @@ const useAuthStore = create(
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("token")
                     localStorage.removeItem("userId")
+                    localStorage.removeItem("role")
                     localStorage.removeItem("status")
                 }
                 set({ user: null, token: null, error: null })

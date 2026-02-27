@@ -29,17 +29,6 @@ export default function LoginPage() {
         e.preventDefault()
         setLocalError("")
 
-        // Local dev admin check
-        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-        const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
-
-        if (email === adminEmail && password === adminPassword) {
-            localStorage.setItem("role", "admin")
-            document.cookie = "auth-token=true; path=/; max-age=86400"
-            router.push("/admin/dashboard")
-            return
-        }
-
         try {
             const data = await login(email, password)
 

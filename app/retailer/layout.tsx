@@ -46,8 +46,9 @@ export default function RetailerLayout({ children }: { children: React.ReactNode
     }, [user, router, checkAuth, loading])
 
     const status = user?.status || null;
+    const hasToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    if (loading || (!user && localStorage.getItem("token"))) {
+    if (loading || (!user && hasToken)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
                 <div className="w-10 h-10 border-4 border-[#FF6B00]/20 border-t-[#FF6B00] rounded-full animate-spin" />

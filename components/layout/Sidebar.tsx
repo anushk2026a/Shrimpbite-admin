@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
+import useAuthStore from "@/data/store/useAuthStore"
 
 const adminMenu = [
     {
@@ -68,12 +69,18 @@ export default function Sidebar() {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
     const [mounted, setMounted] = useState(false)
+    const { user } = useAuthStore()
     const [role, setRole] = useState<string | null>(null)
 
     useEffect(() => {
         setMounted(true)
-        setRole(localStorage.getItem("role") || "admin")
-    }, [])
+        if (user) {
+            setRole(user.role)
+            localStorage.setItem("role", user.role)
+        } else {
+            setRole(localStorage.getItem("role") || "admin")
+        }
+    }, [user])
 
     const handleToggle = () => {
         setCollapsed(!collapsed)
