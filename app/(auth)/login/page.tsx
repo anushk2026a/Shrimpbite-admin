@@ -160,10 +160,12 @@ export default function LoginPage() {
                                 </div>
                             )}
 
-                            <form onSubmit={handleLogin} className="space-y-8">
+                            <form onSubmit={handleLogin} className="space-y-6">
                                 <div className="space-y-6">
                                     <div className="space-y-2.5">
-                                        <label className="text-sm font-black text-[#1A1A1A] ml-1">Email address</label>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-black text-[#1A1A1A] ml-1">Email address</label>
+                                        </div>
                                         <div className="relative group">
                                             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#A0A0A0] group-focus-within:text-[#FF6B00] transition-colors">
                                                 <Mail size={18} className="stroke-[2.5]" />
@@ -182,7 +184,7 @@ export default function LoginPage() {
                                     <div className="space-y-2.5">
                                         <div className="flex items-center justify-between ml-1">
                                             <label className="text-sm font-black text-[#1A1A1A]">Password</label>
-                                            <Link href="#" className="text-xs font-black text-[#6CC51D] hover:text-[#5BA819] transition-colors">Forgot password?</Link>
+                                            <Link href="#" className="text-xs font-black text-[#9BE15D] hover:text-[#7ED957] transition-colors">Forgot password?</Link>
                                         </div>
                                         <div className="relative group">
                                             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#A0A0A0] group-focus-within:text-[#FF6B00] transition-colors">
@@ -232,7 +234,7 @@ export default function LoginPage() {
                             </form>
 
                             <p className="text-center text-sm text-[#868889] font-bold pt-6 tracking-tight">
-                                Looking to start business with us? <Link href="/register" className="text-[#6CC51D] font-black hover:text-[#5BA819] transition-colors">Request access</Link>
+                                Looking to start business with us? <Link href="/register" className="text-[#9BE15D] font-black hover:text-[#7ED957] transition-colors">Request access</Link>
                             </p>
                         </div>
                     </div>
