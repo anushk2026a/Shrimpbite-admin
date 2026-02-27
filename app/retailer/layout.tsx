@@ -1,46 +1,59 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Sidebar from "@/components/layout/Sidebar"
 import Topbar from "@/components/layout/Topbar"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import useAuthStore from "@/data/store/useAuthStore"
 
 export default function RetailerLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
 
-    const [status, setStatus] = useState<string | null>(null)
+    const { user, checkAuth, loading } = useAuthStore()
 
     useEffect(() => {
-        const fetchStatus = async () => {
-            const userId = localStorage.getItem("userId")
-            const role = localStorage.getItem("role")
+        const verifyStatus = async () => {
+            // If store is still loading (either login or checkAuth is in progress), wait.
+            if (loading) return
 
-            if (!userId || role !== "retailer") {
+            // If user isn't in store, try checkAuth
+            if (!user) {
+                const userId = localStorage.getItem("userId")
+                const token = localStorage.getItem("token")
+
+                if (userId && token) {
+                    await checkAuth()
+                } else {
+                    router.replace("/login")
+                }
+                return
+            }
+
+            // At this point user exists
+            if (user.role !== "retailer") {
                 router.replace("/login")
                 return
             }
 
-            try {
-                const response = await fetch(`http://localhost:5000/api/auth/me/${userId}`)
-                if (response.ok) {
-                    const data = await response.json()
-                    setStatus(data.status)
-                    localStorage.setItem("status", data.status)
-
-                    const path = window.location.pathname
-                    if (data.status !== "approved" && path !== "/retailer/status") {
-                        router.replace("/retailer/status")
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching status:", error)
+            const path = window.location.pathname
+            if (user.status !== "approved" && path !== "/retailer/status") {
+                router.replace("/retailer/status")
             }
         }
 
-        fetchStatus()
-    }, [router])
+        verifyStatus()
+    }, [user, router, checkAuth, loading])
+
+    const status = user?.status || null;
+
+    if (loading || (!user && localStorage.getItem("token"))) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
+                <div className="w-10 h-10 border-4 border-[#FF6B00]/20 border-t-[#FF6B00] rounded-full animate-spin" />
+            </div>
+        )
+    }
 
 
     return (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Filter, MoreVertical, User, Mail, Shield, UserCheck, UserX, Clock, Eye, X, CheckSquare, AlertCircle, Building, MapPin, FileText, Globe } from "lucide-react"
 import { cn } from "@/lib/utils"
+import adminService from "@/data/services/adminService"
 
 interface Retailer {
     _id: string;
@@ -47,8 +48,7 @@ export default function RetailersPage() {
     const fetchRetailers = async () => {
         setLoading(true)
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/retailers?status=${filter}`)
-            const data = await response.json()
+            const data = await adminService.getRetailers(filter)
             setRetailers(data)
         } catch (error) {
             console.error("Error fetching retailers:", error)
@@ -65,23 +65,13 @@ export default function RetailersPage() {
 
         setActionLoading(true)
         try {
-            const response = await fetch("http://localhost:5000/api/admin/retailers/status", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, status, rejectionReason })
-            })
-
-            if (response.ok) {
-                setSelectedRetailer(null)
-                setRejectionReason("")
-                fetchRetailers()
-            } else {
-                const err = await response.json()
-                alert(err.message || "Action failed")
-            }
-        } catch (error) {
+            await adminService.updateRetailerStatus(userId, status, rejectionReason)
+            setSelectedRetailer(null)
+            setRejectionReason("")
+            fetchRetailers()
+        } catch (error: any) {
             console.error(error)
-            alert("Action failed")
+            alert(error.response?.data?.message || "Action failed")
         } finally {
             setActionLoading(false)
         }

@@ -1,0 +1,97 @@
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import authService from '../services/authService'
+
+const useAuthStore = create(
+    persist(
+        (set, get) => ({
+            user: null,
+            token: null,
+            loading: false,
+            error: null,
+
+            login: async (email, password) => {
+                set({ loading: true, error: null })
+                try {
+                    const data = await authService.login({ email, password })
+
+                    if (typeof window !== "undefined") {
+                        localStorage.setItem("token", data.token)
+                        localStorage.setItem("userId", data.user._id)
+                        localStorage.setItem("status", data.user.status)
+                    }
+
+                    set({
+                        user: data.user,
+                        token: data.token,
+                        loading: false
+                    })
+                    return data
+                } catch (err) {
+                    set({
+                        error: err.response?.data?.message || 'Login failed',
+                        loading: false
+                    })
+                    throw err
+                }
+            },
+
+            register: async (userData) => {
+                set({ loading: true, error: null })
+                try {
+                    const data = await authService.register(userData)
+
+                    if (typeof window !== "undefined") {
+                        localStorage.setItem("token", data.token)
+                        localStorage.setItem("userId", data.user._id)
+                        localStorage.setItem("status", data.user.status)
+                    }
+
+                    set({
+                        user: data.user,
+                        token: data.token,
+                        loading: false
+                    })
+                    return data
+                } catch (err) {
+                    set({
+                        error: err.response?.data?.message || 'Registration failed',
+                        loading: false
+                    })
+                    throw err
+                }
+            },
+
+            logout: () => {
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("token")
+                    localStorage.removeItem("userId")
+                    localStorage.removeItem("status")
+                }
+                set({ user: null, token: null, error: null })
+            },
+
+            setUser: (user) => set({ user }),
+
+            checkAuth: async () => {
+                const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+                const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+
+                if (userId && token) {
+                    try {
+                        const userData = await authService.getMe(userId)
+                        set({ user: userData, token: token })
+                    } catch (err) {
+                        get().logout()
+                    }
+                }
+            }
+        }),
+        {
+            name: 'shrimpbite-auth', // name of the item in the storage (must be unique)
+            storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+        }
+    )
+)
+
+export default useAuthStore

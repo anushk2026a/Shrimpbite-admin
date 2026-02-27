@@ -13,6 +13,9 @@ import {
     ChevronDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import fileService from "@/data/services/fileService"
+import authService from "@/data/services/authService"
+import useAuthStore from "@/data/store/useAuthStore"
 
 const steps = [
     { id: "owner", title: "Owner Details", icon: CheckCircle2 }, // Using CheckCircle2 icon place holder or User
@@ -82,24 +85,13 @@ export default function OnboardingPage() {
         if (!file) return
 
         setUploading(prev => ({ ...prev, [field]: true }))
-        const formDataUpload = new FormData()
-        formDataUpload.append("file", file)
 
         try {
-            const response = await fetch("http://localhost:5000/api/upload", {
-                method: "POST",
-                body: formDataUpload
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                setFormData(prev => ({ ...prev, [field]: data.url }))
-            } else {
-                alert("Upload failed. Please try again.")
-            }
+            const data = await fileService.upload(file)
+            setFormData(prev => ({ ...prev, [field]: data.url }))
         } catch (error) {
             console.error("Upload error:", error)
-            alert("Upload failed. Please check your connection.")
+            alert("Upload failed. Please try again.")
         } finally {
             setUploading(prev => ({ ...prev, [field]: false }))
         }
@@ -110,46 +102,59 @@ export default function OnboardingPage() {
         setLoading(true)
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/onboarding", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId,
-                    alternateContact: formData.alternateContact,
-                    whatsappNumber: formData.whatsappNumber,
+            const response = await authService.updateOnboarding({
+                userId,
+                alternateContact: formData.alternateContact,
+                whatsappNumber: formData.whatsappNumber,
+                businessDetails: {
+                    businessName: formData.businessName,
+                    storeDisplayName: formData.storeDisplayName,
+                    ownerName: formData.ownerName,
+                    businessType: formData.businessType,
+                    yearsInBusiness: formData.yearsInBusiness,
+                    coldStorage: formData.coldStorage,
+                    monthlyPurchaseVolume: formData.monthlyPurchaseVolume,
+                    location: {
+                        address: formData.address,
+                        city: formData.city,
+                        state: formData.state,
+                        pincode: formData.pincode,
+                        landmark: formData.landmark
+                    },
+                    legal: {
+                        gst: formData.gst,
+                        fssai: formData.fssai,
+                        licenseUrl: formData.licenseUrl,
+                        gstCertificateUrl: formData.gstCertificateUrl
+                    }
+                }
+            })
+
+            // Update store state immediately to avoid lag
+            if (useAuthStore.getState().user) {
+                useAuthStore.getState().setUser({
+                    ...useAuthStore.getState().user,
+                    status: "under_review",
                     businessDetails: {
+                        ...useAuthStore.getState().user.businessDetails,
                         businessName: formData.businessName,
-                        storeDisplayName: formData.storeDisplayName,
-                        ownerName: formData.ownerName,
                         businessType: formData.businessType,
-                        yearsInBusiness: formData.yearsInBusiness,
-                        coldStorage: formData.coldStorage,
-                        monthlyPurchaseVolume: formData.monthlyPurchaseVolume,
                         location: {
                             address: formData.address,
                             city: formData.city,
                             state: formData.state,
                             pincode: formData.pincode,
                             landmark: formData.landmark
-                        },
-                        legal: {
-                            gst: formData.gst,
-                            fssai: formData.fssai,
-                            licenseUrl: formData.licenseUrl,
-                            gstCertificateUrl: formData.gstCertificateUrl
                         }
                     }
                 })
-            })
-
-            if (response.ok) {
-                localStorage.setItem("status", "under_review")
-                router.push("/retailer/status")
-            } else {
-                alert("Something went wrong. Please try again.")
             }
+
+            localStorage.setItem("status", "under_review")
+            router.push("/retailer/status")
         } catch (error) {
             console.error(error)
+            alert("Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }

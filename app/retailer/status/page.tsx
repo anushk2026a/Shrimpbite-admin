@@ -13,48 +13,37 @@ import {
     LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import useAuthStore from "@/data/store/useAuthStore"
 
 export default function StatusPage() {
     const router = useRouter()
-    const [loading, setLoading] = useState(true)
-    const [userData, setUserData] = useState<any>(null)
+    const { user, logout, checkAuth, loading: storeLoading } = useAuthStore()
 
     useEffect(() => {
-        const fetchStatus = async () => {
-            const userId = localStorage.getItem("userId")
-            if (!userId) {
-                router.push("/login")
+        const updateStatus = async () => {
+            if (!user) {
+                await checkAuth()
                 return
             }
 
-            try {
-                const response = await fetch(`http://localhost:5000/api/auth/me/${userId}`)
-                const data = await response.json()
-
-                if (data.status === "approved") {
-                    router.push("/retailer/dashboard")
-                    return
-                }
-
-                setUserData(data)
-                localStorage.setItem("status", data.status)
-            } catch (error) {
-                console.error("Failed to fetch status:", error)
-            } finally {
-                setLoading(false)
+            if (user.status === "approved") {
+                router.push("/retailer/dashboard")
             }
         }
 
-        fetchStatus()
-        // Poll every 30 seconds for status changes
-        const interval = setInterval(fetchStatus, 30000)
+        updateStatus()
+        // Poll for status updates
+        const interval = setInterval(checkAuth, 30000)
         return () => clearInterval(interval)
-    }, [])
+    }, [user, router, checkAuth])
 
     const handleLogout = () => {
-        localStorage.clear()
+        logout()
         router.push("/login")
     }
+
+    const userData = user;
+    const loading = storeLoading;
 
     const handleResubmit = () => {
         router.push("/onboarding")
