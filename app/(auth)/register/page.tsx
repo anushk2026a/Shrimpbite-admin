@@ -13,50 +13,31 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import useAuthStore from "@/data/store/useAuthStore"
 
 export default function RegisterPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const { register, loading, error: storeError } = useAuthStore()
+    const [localError, setLocalError] = useState("")
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         phone: "",
         password: ""
     })
-    const [error, setError] = useState("")
+
+    const error = storeError || localError;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLoading(true)
-        setError("")
+        setLocalError("")
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data.message || "Registration failed")
-            }
-
-            // Save token and user info
-            localStorage.setItem("token", data.token)
-            localStorage.setItem("userId", data.user.id)
-            localStorage.setItem("role", "retailer")
-            localStorage.setItem("status", data.user.status)
-            document.cookie = "auth-token=true; path=/; max-age=86400"
-
-            // Redirect to onboarding form
+            await register(formData)
             router.push("/onboarding")
         } catch (err: any) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
+            // Error handled by store
         }
     }
 

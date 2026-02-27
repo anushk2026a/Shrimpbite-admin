@@ -8,68 +8,57 @@ import {
     Lock,
     ArrowRight,
     ChevronRight,
+    LayoutDashboard, UtensilsCrossed, ShieldCheck, LogIn, UserPlus, Fingerprint, Sparkles, Building2
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import useAuthStore from "@/data/store/useAuthStore"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-    const [showPassword, setShowPassword] = useState(false)
-    const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [error, setError] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
+    const { login, loading, error: storeError } = useAuthStore()
+    const [localError, setLocalError] = useState("")
+    const router = useRouter()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const error = storeError || localError;
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLoading(true)
-        setError("")
+        setLocalError("")
 
-        setTimeout(async () => {
-            const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-            const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+        // Local dev admin check
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+        const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
 
-            // Local dev admin check
-            if (email === adminEmail && password === adminPassword) {
-                localStorage.setItem("role", "admin")
-                document.cookie = "auth-token=true; path=/; max-age=86400"
-                window.location.href = "/admin/dashboard"
-                return
-            }
+        if (email === adminEmail && password === adminPassword) {
+            localStorage.setItem("role", "admin")
+            document.cookie = "auth-token=true; path=/; max-age=86400"
+            router.push("/admin/dashboard")
+            return
+        }
 
-            try {
-                // Backend API call
-                const response = await fetch("http://localhost:5000/api/auth/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password })
-                })
+        try {
+            const data = await login(email, password)
 
-                const data = await response.json()
-
-                if (!response.ok) {
-                    throw new Error(data.message || "Invalid credentials")
-                }
-
-                localStorage.setItem("token", data.token)
-                localStorage.setItem("userId", data.user.id)
-                localStorage.setItem("role", "retailer")
-                localStorage.setItem("status", data.user.status)
-                document.cookie = "auth-token=true; path=/; max-age=86400"
-
-                // Status based routing
-                if (data.user.status === "draft") {
-                    window.location.href = "/onboarding"
-                } else if (data.user.status === "approved") {
-                    window.location.href = "/retailer/dashboard"
+            if (data.user.role === "admin") {
+                router.push("/admin/dashboard")
+            } else {
+                if (data.user.status === "approved") {
+                    router.push("/retailer/dashboard")
+                } else if (data.user.status === "under_review" || data.user.status === "rejected") {
+                    router.push("/retailer/status")
                 } else {
-                    window.location.href = "/retailer/status"
+                    router.push("/onboarding")
                 }
-
-            } catch (err: any) {
-                setError(err.message)
-                setLoading(false)
             }
-        }, 1000)
+        } catch (err: any) {
+            // Error is handled by the store and available via storeError
+            // If there's a specific local error not from the store, set it here
+            // For now, we rely on storeError
+        }
     }
 
     return (
@@ -182,7 +171,7 @@ export default function LoginPage() {
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-8">
+                            <form onSubmit={handleLogin} className="space-y-8">
                                 <div className="space-y-6">
                                     <div className="space-y-2.5">
                                         <label className="text-sm font-black text-[#1A1A1A] ml-1">Email address</label>
