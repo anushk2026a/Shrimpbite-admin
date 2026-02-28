@@ -83,12 +83,14 @@ export default function OnboardingPage() {
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "licenseUrl" | "gstCertificateUrl") => {
         const file = e.target.files?.[0]
         if (!file) return
+        console.log("FILE:", file);
 
         setUploading(prev => ({ ...prev, [field]: true }))
 
         try {
             const data = await fileService.upload(file)
             setFormData(prev => ({ ...prev, [field]: data.url }))
+            console.log("DATA:", data);
         } catch (error) {
             console.error("Upload error:", error)
             alert("Upload failed. Please try again.")
