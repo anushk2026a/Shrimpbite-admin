@@ -5,7 +5,7 @@ const adminService = {
         const response = await apiClient.get("/admin/retailers", {
             params: { status }
         });
-        return response.data;
+        return response.data.data;
     },
 
     updateRetailerStatus: async (userId, status, rejectionReason = "") => {
@@ -14,7 +14,7 @@ const adminService = {
             status,
             rejectionReason
         });
-        return response.data;
+        return response.data.data;
     }
 };
 
