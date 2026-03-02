@@ -128,14 +128,16 @@ export default function UsersPage() {
                                                 {new Date(user.createdAt).toLocaleDateString()}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => setSelectedUser(user)}
-                                                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600" title="View Details">
-                                                    <Eye size={18} />
-                                                </button>
-                                            </div>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => setSelectedUser(user)}
+                                                className={cn(
+                                                    "px-4 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest transition-all",
+                                                    "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white"
+                                                )}
+                                            >
+                                                View
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
