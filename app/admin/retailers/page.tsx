@@ -16,6 +16,7 @@ interface Retailer {
     businessDetails?: {
         businessName?: string;
         businessType?: string;
+        storeImage?: string;
         location?: {
             address?: string;
             city?: string;
@@ -280,6 +281,11 @@ export default function RetailersPage() {
                                         <Building size={14} /> Store Profile
                                     </h3>
                                     <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+                                        {selectedRetailer.businessDetails?.storeImage && (
+                                            <div className="aspect-video w-full rounded-xl overflow-hidden border mb-4">
+                                                <img src={selectedRetailer.businessDetails.storeImage} alt="Store" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
                                         <div>
                                             <p className="text-xs text-gray-400 font-bold">BUSINESS NAME</p>
                                             <p className="font-bold text-lg">{selectedRetailer.businessDetails?.businessName}</p>

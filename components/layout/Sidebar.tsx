@@ -56,6 +56,7 @@ const retailerMenu = [
             { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
             { name: "Orders", icon: ShoppingCart, href: "/retailer/orders" },
             { name: "Reviews", icon: Star, href: "/retailer/reviews" },
+            { name: "Store Settings", icon: UserCog, href: "/retailer/settings" },
         ]
     },
     {
@@ -93,8 +94,8 @@ export default function Sidebar() {
     }
 
     const menuGroups = role === "retailer" ? retailerMenu : adminMenu
-    const userLabel = role === "retailer" ? "Shrimp Retailer" : "Shrimpbite Admin"
-    const userIdentity = role === "retailer" ? "Shop Owner" : "mark@shrimpbite.in"
+    const userLabel = user?.name || (role === "retailer" ? "Shrimp Retailer" : "Shrimbite Admin")
+    const userIdentity = user?.email || (role === "retailer" ? "Shop Owner" : "admin@shrimpbite.in")
 
     return (
         <aside className={cn(
