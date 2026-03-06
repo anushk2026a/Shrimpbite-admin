@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 
 import { useRouter } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
+import ImageCropper from "@/components/shared/ImageCropper"
 
 interface Category {
     _id: string;
@@ -30,6 +31,10 @@ export default function AddProductPage() {
     const [loading, setLoading] = useState(false)
     const [publishing, setPublishing] = useState(false)
     const [uploading, setUploading] = useState(false)
+
+    // Cropping State
+    const [showCropper, setShowCropper] = useState(false)
+    const [tempImage, setTempImage] = useState<string | null>(null)
 
     // Form State
     const [formData, setFormData] = useState({
@@ -60,8 +65,20 @@ export default function AddProductPage() {
         const file = e.target.files?.[0]
         if (!file) return
 
+        const reader = new FileReader()
+        reader.onload = () => {
+            setTempImage(reader.result as string)
+            setShowCropper(true)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const onCropComplete = async (croppedBlob: Blob) => {
+        setShowCropper(false)
         setUploading(true)
         try {
+            // Convert blob to file for standard upload
+            const file = new File([croppedBlob], "product-image.jpg", { type: "image/jpeg" })
             const response = await retailerService.uploadImage(file)
             setFormData(prev => ({
                 ...prev,
@@ -72,6 +89,7 @@ export default function AddProductPage() {
             alert("Image upload failed")
         } finally {
             setUploading(false)
+            setTempImage(null)
         }
     }
 
@@ -322,6 +340,17 @@ export default function AddProductPage() {
                     </section>
                 </div>
             </div>
+
+            {showCropper && tempImage && (
+                <ImageCropper
+                    image={tempImage}
+                    onCropComplete={onCropComplete}
+                    onCancel={() => {
+                        setShowCropper(false)
+                        setTempImage(null)
+                    }}
+                />
+            )}
         </div >
     )
 }

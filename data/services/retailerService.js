@@ -32,10 +32,21 @@ const retailerService = {
         return response.data;
     },
 
+    // Profile & Settings
+    getProfile: async (userId) => {
+        const response = await apiClient.get(`/auth/me/${userId}`);
+        return response.data;
+    },
+
+    updateProfile: async (profileData) => {
+        const response = await apiClient.put("/retailer/profile", profileData);
+        return response.data;
+    },
+
     uploadImage: async (file) => {
         const formData = new FormData();
         formData.append("file", file);
-        const response = await apiClient.post("/upload", formData, {
+        const response = await apiClient.post("/upload/image", formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }
