@@ -92,13 +92,13 @@ export default function AddProductPage() {
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Discounted Price (Optional)</label>
                                 <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold">$</div>
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold">₹</div>
                                     <input
                                         type="text"
                                         placeholder="99"
                                         className="w-full pl-8 pr-4 py-2.5 rounded-lg bg-background-soft border-transparent focus:bg-white focus:border-primary transition-all outline-none text-sm"
                                     />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-primary italic">Sale = $900.89</div>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-primary italic">Sale = ₹900.89</div>
                                 </div>
                             </div>
                         </div>

@@ -8,10 +8,6 @@ import {
     MoreVertical,
     ChevronLeft,
     ChevronRight,
-    Eye,
-    Trash2,
-    Calendar,
-    Download,
     Plus
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -31,7 +27,7 @@ const orders = [
     { id: "#ORD0005", product: "1kg Indian Sea Bass (Whole)", image: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?q=80&w=100&h=100&auto=format&fit=crop", date: "25-02-2026", price: "24.99", payment: "Unpaid", status: "Pending" },
 ]
 
-const statusStyles: any = {
+const statusStyles: Record<string, string> = {
     "Delivered": "bg-green-50 text-green-600 border-green-100",
     "Pending": "bg-warning-50 text-warning border-warning-100",
     "Shipped": "bg-blue-50 text-blue-600 border-blue-100",

@@ -9,16 +9,17 @@ import {
     TicketPercent,
     Layers,
     ArrowLeftRight,
-    Award,
     PlusCircle,
-    Image as ImageIcon,
     List,
     Star,
     UserCog,
     ShieldCheck,
     LogOut,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Wallet,
+    BellRing,
+    CalendarCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
@@ -35,6 +36,8 @@ const adminMenu = [
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
             { name: "Categories", icon: Layers, href: "/admin/categories" },
             { name: "Subscription Plans", icon: TicketPercent, href: "/admin/subscriptions" },
+            { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
+            { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
             { name: "Transaction", icon: ArrowLeftRight, href: "/admin/transactions" },
         ]
     },
@@ -55,6 +58,8 @@ const retailerMenu = [
             { name: "My Products", icon: List, href: "/retailer/products" },
             { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
             { name: "Orders", icon: ShoppingCart, href: "/retailer/orders" },
+            { name: "Riders", icon: Users, href: "/retailer/riders" },
+            { name: "Daily Prep List", icon: CalendarCheck, href: "/retailer/prep-list" },
             { name: "Reviews", icon: Star, href: "/retailer/reviews" },
             { name: "Store Settings", icon: UserCog, href: "/retailer/settings" },
         ]
@@ -76,6 +81,7 @@ export default function Sidebar() {
     const [role, setRole] = useState<string | null>(null)
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         setMounted(true)
         if (user) {
             setRole(user.role)

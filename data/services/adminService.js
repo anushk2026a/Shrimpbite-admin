@@ -1,9 +1,21 @@
 import apiClient from "../api/apiClient";
 
 const adminService = {
+    getDashboardStats: async () => {
+        const response = await apiClient.get("/admin/dashboard-stats");
+        return response.data;
+    },
+
     getRetailers: async (status = "under_review", page = 1, limit = 10, search = "") => {
         const response = await apiClient.get("/admin/retailers", {
             params: { status, page, limit, search }
+        });
+        return response.data;
+    },
+
+    getShops: async () => {
+        const response = await apiClient.get("/admin/retailers", {
+            params: { status: "all" }
         });
         return response.data;
     },
@@ -65,6 +77,28 @@ const adminService = {
 
     deleteSubscriptionPlan: async (id) => {
         const response = await apiClient.delete(`/admin/subscriptions/${id}`);
+        return response.data;
+    },
+
+    // Payout Management
+    getPayouts: async () => {
+        const response = await apiClient.get("/payout/all");
+        return response.data;
+    },
+
+    approvePayout: async (payoutId, transactionId) => {
+        const response = await apiClient.put(`/payout/approve/${payoutId}`, { transactionId });
+        return response.data;
+    },
+
+    // Communication Management
+    sendBulkNotification: async (title, body, targetType = 'all') => {
+        const response = await apiClient.post("/communication/notify-all", { title, body, targetType });
+        return response.data;
+    },
+
+    sendBulkEmail: async (subject, htmlContent) => {
+        const response = await apiClient.post("/communication/email-all", { subject, htmlContent });
         return response.data;
     },
 

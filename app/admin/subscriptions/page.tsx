@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Edit2, Trash2, Check, X, Shield, Star, Zap, Crown, Sliders, AlertCircle, Trash } from "lucide-react"
+import { Plus, Edit2, Trash2, Check, X, AlertCircle, Trash, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
 
@@ -105,8 +105,11 @@ export default function SubscriptionsPage() {
             }
             setShowModal(false)
             fetchPlans()
-        } catch (error: any) {
-            showToastMsg(error.response?.data?.message || "Operation failed", "error")
+        } catch (error: unknown) {
+            const msg = error && typeof error === 'object' && 'response' in error
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+                : undefined
+            showToastMsg(msg || "Operation failed", "error")
         } finally {
             setActionLoading(false)
         }

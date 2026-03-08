@@ -8,7 +8,6 @@ import {
     Lock,
     ArrowRight,
     ChevronRight,
-    LayoutDashboard, UtensilsCrossed, ShieldCheck, LogIn, UserPlus, Fingerprint, Sparkles, Building2
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -43,10 +42,8 @@ export default function LoginPage() {
                     router.push("/onboarding")
                 }
             }
-        } catch (err: any) {
+        } catch {
             // Error is handled by the store and available via storeError
-            // If there's a specific local error not from the store, set it here
-            // For now, we rely on storeError
         }
     }
 
