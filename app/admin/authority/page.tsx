@@ -2,7 +2,7 @@
 
 import { Shield, Lock, ShieldCheck, UserPlus, MoreVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
-
+// sdf
 const permissions = [
     { role: "Manager", modules: "Products, Orders", users: 5, status: "Active" },
     { role: "Support", modules: "Orders, Customers", users: 8, status: "Active" },
