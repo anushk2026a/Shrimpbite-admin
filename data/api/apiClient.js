@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-    // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+    baseURL: "http://localhost:5000/api",
 
-    baseURL: "https://shrimpbite-backend.vercel.app/api",
+    // baseURL: "https://shrimpbite-backend.vercel.app/api",
     headers: {
         "Content-Type": "application/json",
     },
@@ -41,7 +41,7 @@ apiClient.interceptors.response.use(
     (response) => {
         // Log formatted response
         console.log(
-            `✅ %c[API Response] %c${response.status} %c${response.config.url}`,
+            `✅ %c[API Response]  %c${response.status} %c${response.config.url}`,
             "color: #6CC51D; font-weight: bold;",
             "color: #1B2D1F; font-weight: bold;",
             "color: #868E96;",
