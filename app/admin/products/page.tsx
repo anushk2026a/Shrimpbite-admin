@@ -135,7 +135,7 @@ export default function ProductsPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-text-muted font-medium">{p.category}</td>
-                                    <td className="px-6 py-4 font-bold">${p.price}</td>
+                                    <td className="px-6 py-4 font-bold">₹{p.price}</td>
                                     <td className="px-6 py-4 font-bold">{p.stock}</td>
                                     <td className="px-6 py-4">
                                         <span className={cn(

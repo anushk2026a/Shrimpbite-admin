@@ -8,7 +8,6 @@ import {
     Lock,
     Phone,
     ArrowRight,
-    ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -36,7 +35,7 @@ export default function RegisterPage() {
         try {
             await register(formData)
             router.push("/onboarding")
-        } catch (err: any) {
+        } catch {
             // Error handled by store
         }
     }
@@ -216,6 +215,7 @@ export default function RegisterPage() {
                             <p className="text-center text-sm text-[#868889] font-bold pt-4 tracking-tight">
                                 Already have an account? <Link href="/login" className="text-[#6CC51D] font-black hover:text-[#5BA819] transition-colors">Login here</Link>
                             </p>
+
                         </div>
                     </div>
                 </div>

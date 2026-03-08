@@ -5,10 +5,10 @@ import { ArrowLeftRight, Search, Filter, Download, MoreVertical, ArrowUpRight, A
 import { cn } from "@/lib/utils"
 
 const transactions = [
-    { id: "#TXN-9081", shop: "Coastal Harvest", date: "25 Feb 2026", amount: "$1,200.00", type: "Credit", status: "Settled" },
-    { id: "#TXN-9082", shop: "Deep Sea Delights", date: "24 Feb 2026", amount: "$3,450.00", type: "Withdraw", status: "Pending" },
-    { id: "#TXN-9083", shop: "Fresh Catch Co.", date: "24 Feb 2026", amount: "$850.50", type: "Credit", status: "Settled" },
-    { id: "#TXN-9084", shop: "Blue Water Shrimps", date: "23 Feb 2026", amount: "$2,100.00", type: "Withdraw", status: "Settled" },
+    { id: "#TXN-9081", shop: "Coastal Harvest", date: "25 Feb 2026", amount: "₹1,200.00", type: "Credit", status: "Settled" },
+    { id: "#TXN-9082", shop: "Deep Sea Delights", date: "24 Feb 2026", amount: "₹3,450.00", type: "Withdraw", status: "Pending" },
+    { id: "#TXN-9083", shop: "Fresh Catch Co.", date: "24 Feb 2026", amount: "₹850.50", type: "Credit", status: "Settled" },
+    { id: "#TXN-9084", shop: "Blue Water Shrimps", date: "23 Feb 2026", amount: "₹2,100.00", type: "Withdraw", status: "Settled" },
 ]
 
 export default function AdminTransactionsPage() {
@@ -33,7 +33,7 @@ export default function AdminTransactionsPage() {
                     </div>
                     <div>
                         <p className="text-sm font-semibold text-text-muted">Total Volume</p>
-                        <h3 className="text-2xl font-bold">$142,500</h3>
+                        <h3 className="text-2xl font-bold">₹142,500</h3>
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
@@ -42,7 +42,7 @@ export default function AdminTransactionsPage() {
                     </div>
                     <div>
                         <p className="text-sm font-semibold text-text-muted">Total Credited</p>
-                        <h3 className="text-2xl font-bold">$120,400</h3>
+                        <h3 className="text-2xl font-bold">₹120,400</h3>
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
@@ -51,7 +51,7 @@ export default function AdminTransactionsPage() {
                     </div>
                     <div>
                         <p className="text-sm font-semibold text-text-muted">Total Withdrawals</p>
-                        <h3 className="text-2xl font-bold">$22,100</h3>
+                        <h3 className="text-2xl font-bold">₹22,100</h3>
                     </div>
                 </div>
             </div>

@@ -4,11 +4,9 @@ import { useState, useEffect } from "react"
 import {
     Plus,
     Search,
-    Filter,
     MoreVertical,
     Edit2,
     Trash2,
-    ArrowUpDown,
     ChevronLeft,
     ChevronRight,
     Package,
@@ -77,7 +75,7 @@ export default function RetailerProductsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">My Products</h1>
-                    <p className="text-text-muted">Manage your shop's inventory and listings.</p>
+                    <p className="text-text-muted">Manage your shop&apos;s inventory and listings.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link href="/retailer/products/add" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary transition-all text-sm font-medium shadow-md shadow-primary/20">

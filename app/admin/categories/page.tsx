@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Clock, Plus, Edit2, Trash2, X, AlertCircle } from "lucide-react"
+import { Search, Clock, Plus, Edit2, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
 
@@ -88,9 +88,12 @@ export default function CategoriesPage() {
             }
             setIsModalOpen(false)
             fetchCategories(currentPage)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error)
-            alert(error.response?.data?.message || "Action failed")
+            const msg = error && typeof error === 'object' && 'response' in error
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+                : undefined
+            alert(msg || "Action failed")
         } finally {
             setActionLoading(false)
         }
@@ -102,8 +105,11 @@ export default function CategoriesPage() {
         try {
             await adminService.deleteCategory(id)
             fetchCategories(currentPage)
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Delete failed")
+        } catch (error: unknown) {
+            const msg = error && typeof error === 'object' && 'response' in error
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+                : undefined
+            alert(msg || "Delete failed")
         }
     }
 

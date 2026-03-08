@@ -22,48 +22,10 @@ import {
 } from "recharts"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-
-const stats = [
-    {
-        title: "Total Orders",
-        value: "1,240",
-        change: "+14.4%",
-        trend: "up",
-        icon: ShoppingCart,
-        color: "bg-primary-light text-primary",
-        href: "/admin/orders"
-    },
-    {
-        title: "New Orders",
-        value: "240",
-        change: "+20%",
-        trend: "up",
-        icon: Package,
-        color: "bg-blue-50 text-blue-600",
-        href: "/admin/orders"
-    },
-    {
-        title: "Completed Orders",
-        value: "960",
-        change: "85%",
-        trend: "up",
-        icon: ShieldCheckIcon,
-        color: "bg-green-50 text-green-600",
-        href: "/admin/orders"
-    },
-    {
-        title: "Canceled Orders",
-        value: "87",
-        change: "-5%",
-        trend: "down",
-        icon: TrashIcon,
-        color: "bg-red-50 text-red-600",
-        href: "/admin/orders"
-    }
-]
+import adminService from "@/data/services/adminService"
 
 // Custom Icons for stats that aren't in lucide-react or need specific naming
-function ShieldCheckIcon(props: any) {
+function ShieldCheckIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +45,7 @@ function ShieldCheckIcon(props: any) {
     )
 }
 
-function TrashIcon(props: any) {
+function TrashIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -104,24 +66,31 @@ function TrashIcon(props: any) {
     )
 }
 
-const chartData = [
-    { name: "Sun", orders: 20 },
-    { name: "Mon", orders: 40 },
-    { name: "Tue", orders: 35 },
-    { name: "Wed", orders: 50 },
-    { name: "Thu", orders: 45 },
-    { name: "Fri", orders: 60 },
-    { name: "Sat", orders: 55 },
-]
-
 export default function Dashboard() {
     const [mounted, setMounted] = useState(false)
+    const [statsData, setStatsData] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setMounted(true)
+        fetchData()
     }, [])
 
-    if (!mounted) {
+    const fetchData = async () => {
+        try {
+            const res = await adminService.getDashboardStats()
+            if (res.success) {
+                setStatsData(res.data)
+            }
+        } catch (error) {
+            console.error("Failed to fetch dashboard stats", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    if (!mounted || loading || !statsData) {
         return <div className="space-y-6 animate-pulse text-foreground">
             <div className="h-20 bg-background-soft rounded-2xl w-1/3" />
             <div className="grid grid-cols-4 gap-6">
@@ -130,12 +99,52 @@ export default function Dashboard() {
             <div className="h-80 bg-background-soft rounded-2xl" />
         </div>
     }
+
+    const staticCards = [
+        {
+            title: "Total Orders",
+            value: statsData.stats.totalOrders.toLocaleString(),
+            change: "",
+            trend: "up",
+            icon: ShoppingCart,
+            color: "bg-primary-light text-primary",
+            href: "/admin/orders"
+        },
+        {
+            title: "New Orders (24h)",
+            value: statsData.stats.newOrders.toLocaleString(),
+            change: "",
+            trend: "up",
+            icon: Package,
+            color: "bg-blue-50 text-blue-600",
+            href: "/admin/orders"
+        },
+        {
+            title: "Completed Orders",
+            value: statsData.stats.completedOrders.toLocaleString(),
+            change: "",
+            trend: "up",
+            icon: ShieldCheckIcon,
+            color: "bg-green-50 text-green-600",
+            href: "/admin/orders"
+        },
+        {
+            title: "Canceled Orders",
+            value: statsData.stats.canceledOrders.toLocaleString(),
+            change: "",
+            trend: "down",
+            icon: TrashIcon,
+            color: "bg-red-50 text-red-600",
+            href: "/admin/orders"
+        }
+    ]
+
     return (
         <div className="space-y-6 text-foreground">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
-                    <p className="text-text-muted">Welcome back, Admin. Here's a summary of all shop activities.</p>
+                    <p className="text-text-muted">Welcome back, Admin. Here&apos;s a summary of all shop activities.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-white hover:bg-background-soft transition-all text-sm font-medium">
@@ -151,7 +160,7 @@ export default function Dashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
+                {staticCards.map((stat, index) => (
                     <Link key={index} href={stat.href} className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm hover:shadow-md transition-all group">
                         <div className="flex items-center justify-between mb-4">
                             <div className={cn("p-3 rounded-xl transition-colors", stat.color)}>
@@ -163,12 +172,14 @@ export default function Dashboard() {
                             <p className="text-sm font-medium text-text-muted mb-1">{stat.title}</p>
                             <div className="flex items-end gap-2">
                                 <h3 className="text-2xl font-bold">{stat.value}</h3>
-                                <span className={cn(
-                                    "text-xs font-bold flex items-center mb-1",
-                                    stat.trend === "up" ? "text-primary" : "text-red-500"
-                                )}>
-                                    {stat.change}
-                                </span>
+                                {stat.change && (
+                                    <span className={cn(
+                                        "text-xs font-bold flex items-center mb-1",
+                                        stat.trend === "up" ? "text-primary" : "text-red-500"
+                                    )}>
+                                        {stat.change}
+                                    </span>
+                                )}
                             </div>
                             <p className="text-xs text-text-muted mt-2">Global activity</p>
                         </div>
@@ -182,16 +193,15 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-lg font-bold">Platform Orders</h3>
-                            <p className="text-sm text-text-muted">Overall performance tracking</p>
+                            <p className="text-sm text-text-muted">Overall performance tracking (Last 7 Days)</p>
                         </div>
                         <div className="flex items-center gap-2 bg-background-soft p-1 rounded-lg">
-                            <button className="px-3 py-1 text-xs font-medium bg-white shadow-sm rounded-md">This Year</button>
-                            <button className="px-3 py-1 text-xs font-medium text-text-muted hover:text-foreground transition-colors">Last Year</button>
+                            <button className="px-3 py-1 text-xs font-medium bg-white shadow-sm rounded-md">Last 7 Days</button>
                         </div>
                     </div>
                     <div className="h-[300px] w-full min-h-0 min-w-0">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <AreaChart data={statsData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#6CC51D" stopOpacity={0.2} />
@@ -234,21 +244,25 @@ export default function Dashboard() {
                 <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex flex-col">
                     <h3 className="text-lg font-bold mb-6">Recent Shop Activities</h3>
                     <div className="space-y-6 flex-1">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex gap-4">
-                                <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center shrink-0">
-                                    <ShoppingCart size={18} className="text-primary" />
+                        {statsData.recentShops.length === 0 ? (
+                            <p className="text-sm text-text-muted">No recent activities.</p>
+                        ) : (
+                            statsData.recentShops.map((shop: any, i: number) => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center shrink-0">
+                                        <ShoppingCart size={18} className="text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-foreground">New Shop Signed: {shop.businessDetails?.businessName || shop.name}</p>
+                                        <p className="text-xs text-text-muted">{new Date(shop.createdAt).toLocaleDateString()}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-foreground">New Shop Signed: Coastal Delights</p>
-                                    <p className="text-xs text-text-muted">{i * 15} minutes ago</p>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
-                    <button className="w-full mt-6 py-2 rounded-lg border text-sm font-medium hover:bg-background-soft transition-all text-text-muted hover:text-foreground">
+                    <Link href="/admin/shops" className="block text-center w-full mt-6 py-2 rounded-lg border text-sm font-medium hover:bg-background-soft transition-all text-text-muted hover:text-foreground">
                         View All Platform Activities
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

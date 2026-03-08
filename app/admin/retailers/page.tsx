@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Filter, MoreVertical, User, Mail, Shield, UserCheck, UserX, Clock, Eye, X, CheckSquare, AlertCircle, Building, MapPin, FileText, Globe } from "lucide-react"
+import { Search, User, UserCheck, UserX, Clock, X, CheckSquare, AlertCircle, Building, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
 
@@ -92,9 +92,12 @@ export default function RetailersPage() {
                 setRejectionReason("")
                 fetchRetailers(currentPage)
             }, 1000)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error)
-            showToast(error.response?.data?.message || "Action failed")
+            const msg = error && typeof error === 'object' && 'response' in error
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+                : undefined
+            showToast(msg || "Action failed")
         } finally {
             setActionLoading(false)
         }
@@ -406,7 +409,7 @@ export default function RetailersPage() {
                                 </section>
 
                                 <div className="p-6 rounded-2xl bg-blue-50 border border-blue-100 italic text-xs text-blue-800 leading-relaxed">
-                                    "Approving will grant the retailer immediate access to their dashboard and all selling features. They will receive an automated email notification."
+                                    &quot;Approving will grant the retailer immediate access to their dashboard and all selling features. They will receive an automated email notification.&quot;
                                 </div>
                             </div>
                         </div>
