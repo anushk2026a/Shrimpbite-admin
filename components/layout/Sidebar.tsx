@@ -56,7 +56,7 @@ const retailerMenu = [
         items: [
             { name: "Dashboard", icon: LayoutDashboard, href: "/retailer/dashboard" },
             { name: "My Products", icon: List, href: "/retailer/products" },
-            { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
+            // { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
             { name: "Orders", icon: ShoppingCart, href: "/retailer/orders" },
             { name: "Riders", icon: Users, href: "/retailer/riders" },
             { name: "Daily Prep List", icon: CalendarCheck, href: "/retailer/prep-list" },
