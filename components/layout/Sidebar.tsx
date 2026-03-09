@@ -35,7 +35,7 @@ const adminMenu = [
             { name: "Users", icon: Users, href: "/admin/users" },
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
             { name: "Categories", icon: Layers, href: "/admin/categories" },
-            { name: "Subscription Plans", icon: TicketPercent, href: "/admin/subscriptions" },
+            // { name: "Subscription Plans", icon: TicketPercent, href: "/admin/subscriptions" },
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
             { name: "Transaction", icon: ArrowLeftRight, href: "/admin/transactions" },
@@ -56,7 +56,7 @@ const retailerMenu = [
         items: [
             { name: "Dashboard", icon: LayoutDashboard, href: "/retailer/dashboard" },
             { name: "My Products", icon: List, href: "/retailer/products" },
-            { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
+            // { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
             { name: "Orders", icon: ShoppingCart, href: "/retailer/orders" },
             { name: "Riders", icon: Users, href: "/retailer/riders" },
             { name: "Daily Prep List", icon: CalendarCheck, href: "/retailer/prep-list" },
