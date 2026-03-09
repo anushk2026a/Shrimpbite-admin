@@ -23,8 +23,11 @@ import { toast } from "sonner"
 const statusStyles: any = {
     "New": "bg-primary-light text-primary border-primary-100",
     "Pending": "bg-warning-50 text-warning border-warning-100",
+    "Accepted": "bg-blue-50 text-blue-600 border-blue-100",
     "Processing": "bg-blue-50 text-blue-600 border-blue-100",
+    "Preparing": "bg-indigo-50 text-indigo-600 border-indigo-100",
     "Shipped": "bg-blue-50 text-blue-600 border-blue-100",
+    "Out for Delivery": "bg-orange-50 text-orange-600 border-orange-100",
     "Delivered": "bg-green-50 text-green-600 border-green-100",
     "Completed": "bg-green-50 text-green-600 border-green-100",
     "Cancelled": "bg-red-50 text-red-600 border-red-100",
@@ -91,9 +94,11 @@ export default function RetailerOrdersPage() {
 
     const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
         const statusMap: any = {
-            "Pending": "Processing",
-            "Processing": "Shipped",
-            "Shipped": "Delivered",
+            "Pending": "Accepted",
+            "Accepted": "Preparing",
+            "Preparing": "Shipped",
+            "Shipped": "Out for Delivery",
+            "Out for Delivery": "Delivered",
             "Delivered": "Completed"
         }
 
@@ -227,7 +232,7 @@ export default function RetailerOrdersPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <select
-                                                defaultValue={order.rider?._id || ""}
+                                                value={order.rider?._id || ""}
                                                 onChange={(e) => handleAssignRider(order.id, e.target.value)}
                                                 className="text-xs bg-background-soft border-transparent rounded p-1 outline-none focus:ring-1 focus:ring-primary/30"
                                             >

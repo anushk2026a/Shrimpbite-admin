@@ -125,6 +125,16 @@ const retailerService = {
     assignRider: async (orderId, riderId) => {
         const response = await apiClient.post("/retailer/assign-rider", { orderId, riderId });
         return response.data;
+    },
+
+    updateRider: async (riderId, riderData) => {
+        const response = await apiClient.patch(`/rider/retailer/${riderId}`, riderData);
+        return response.data;
+    },
+
+    deleteRider: async (riderId) => {
+        const response = await apiClient.delete(`/rider/retailer/${riderId}`);
+        return response.data;
     }
 };
 
