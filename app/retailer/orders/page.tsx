@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import {
     Search,
     MoreVertical,
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils"
 import retailerService from "@/data/services/retailerService"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
+import socket from "@/data/api/socket"
 
 const statusStyles: any = {
     "New": "bg-primary-light text-primary border-primary-100",
@@ -29,18 +31,27 @@ const statusStyles: any = {
     "Cancelled": "bg-red-50 text-red-100 border-red-100",
 }
 
-import socket from "@/data/api/socket"
-
-export default function RetailerOrdersPage() {
+function OrdersContent() {
+    const searchParams = useSearchParams()
     const [mounted, setMounted] = useState(false)
     const [ordersData, setOrdersData] = useState<any>(null)
     const [riders, setRiders] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [orderTypeFilter, setOrderTypeFilter] = useState<"All" | "Subscription" | "One-time">("All")
+    const [statusFilter, setStatusFilter] = useState<"All" | "Pending" | "Completed">("All")
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const ORDERS_PER_PAGE = 10
+
+    useEffect(() => {
+        const filter = searchParams.get("filter")
+        if (filter === "Pending" || filter === "Completed") {
+            setStatusFilter(filter)
+        } else {
+            setStatusFilter("All")
+        }
+    }, [searchParams])
 
     useEffect(() => {
         setMounted(true)
@@ -174,17 +185,25 @@ export default function RetailerOrdersPage() {
     }
 
     const stats = [
-        { title: "Total Shop Orders", value: ordersData.stats.totalOrders.toLocaleString(), change: "", trend: "up", color: "bg-primary-light text-primary" },
-        { title: "Pending Orders", value: ordersData.stats.pendingOrders.toLocaleString(), change: "", trend: "down", color: "bg-warning-50 text-warning" },
-        { title: "Completed", value: ordersData.stats.completedOrders.toLocaleString(), change: ordersData.stats.completedPercentage, trend: "up", color: "bg-green-50 text-green-600" },
-        { title: "Avg. Order Value", value: ordersData.stats.avgOrderValue, change: "", trend: "up", color: "bg-blue-50 text-blue-600" },
+        { title: "Total Shop Orders", value: ordersData.stats.totalOrders.toLocaleString(), change: "", trend: "up", color: "bg-primary-light text-primary", filterValue: "All" },
+        { title: "Pending Orders", value: ordersData.stats.pendingOrders.toLocaleString(), change: "", trend: "down", color: "bg-warning-50 text-warning", filterValue: "Pending" },
+        { title: "Completed", value: ordersData.stats.completedOrders.toLocaleString(), change: ordersData.stats.completedPercentage, trend: "up", color: "bg-green-50 text-green-600", filterValue: "Completed" },
+        { title: "Avg. Order Value", value: ordersData.stats.avgOrderValue, change: "", trend: "up", color: "bg-blue-50 text-blue-600", filterValue: null },
     ]
 
     const filteredOrders = ordersData.orders.filter((order: any) => {
         const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order.product.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesType = orderTypeFilter === "All" || order.orderType === orderTypeFilter
-        return matchesSearch && matchesType
+
+        let matchesStatus = true
+        if (statusFilter === "Pending") {
+            matchesStatus = ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned'].includes(order.status)
+        } else if (statusFilter === "Completed") {
+            matchesStatus = ['Delivered', 'Completed'].includes(order.status)
+        }
+
+        return matchesSearch && matchesType && matchesStatus
     })
 
     const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE)
@@ -304,17 +323,41 @@ export default function RetailerOrdersPage() {
                     </div>
                 </div>
 
-                {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {stats.map((stat, index) => (
-                        <div key={index} className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <div
+                            key={index}
+                            onClick={() => {
+                                if (stat.filterValue) {
+                                    setStatusFilter(stat.filterValue as any)
+                                    setCurrentPage(1)
+                                }
+                            }}
+                            className={cn(
+                                "bg-white p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between group",
+                                stat.filterValue ? "cursor-pointer hover:shadow-md hover:border-primary/50" : "cursor-default border-border-custom shadow-sm",
+                                stat.filterValue && statusFilter === stat.filterValue ? "ring-2 ring-primary ring-offset-2 border-primary shadow-md" : "border-border-custom shadow-sm"
+                            )}
+                        >
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-wider">{stat.title}</p>
-                                <div className={cn("w-2 h-2 rounded-full", stat.trend === "up" ? "bg-primary" : "bg-red-500")}></div>
+                                <p className={cn(
+                                    "text-xs font-bold uppercase tracking-wider transition-colors",
+                                    stat.filterValue && statusFilter === stat.filterValue ? "text-primary" : "text-text-muted"
+                                )}>
+                                    {stat.title}
+                                </p>
+                                <div className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    stat.trend === "up" ? "bg-primary" : "bg-red-500",
+                                    stat.filterValue && statusFilter === stat.filterValue && "animate-pulse"
+                                )}></div>
                             </div>
                             <div className="flex items-end justify-between">
-                                <h3 className="text-2xl font-bold">
-                                    {stat.title === "Avg. Order Value" ? stat.value : stat.value}
+                                <h3 className={cn(
+                                    "text-2xl font-bold transition-all",
+                                    stat.filterValue && statusFilter === stat.filterValue ? "text-primary scale-105" : "text-text"
+                                )}>
+                                    {stat.value}
                                 </h3>
                                 {stat.change && (
                                     <span className={cn("text-xs font-bold", stat.trend === "up" ? "text-primary" : "text-red-500")}>
@@ -637,5 +680,21 @@ export default function RetailerOrdersPage() {
                     </div>
                 )}
         </>
+    )
+}
+
+export default function RetailerOrdersPage() {
+    return (
+        <Suspense fallback={
+            <div className="space-y-6 animate-pulse p-4">
+                <div className="h-12 bg-background-soft rounded-xl w-1/4" />
+                <div className="grid grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-background-soft rounded-2xl" />)}
+                </div>
+                <div className="h-96 bg-background-soft rounded-2xl" />
+            </div>
+        }>
+            <OrdersContent />
+        </Suspense>
     )
 }
