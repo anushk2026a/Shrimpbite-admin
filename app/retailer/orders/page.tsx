@@ -22,6 +22,7 @@ const statusStyles: any = {
     "Pending": "bg-warning-50 text-warning border-warning-100",
     "Accepted": "bg-blue-50 text-blue-600 border-blue-100",
     "Rider Assigned": "bg-blue-50 text-blue-600 border-blue-100",
+    "Rider Accepted": "bg-indigo-50 text-indigo-600 border-indigo-100",
     "Processing": "bg-blue-50 text-blue-600 border-blue-100",
     "Preparing": "bg-indigo-50 text-indigo-600 border-indigo-100",
     "Shipped": "bg-blue-50 text-blue-600 border-blue-100",
@@ -198,7 +199,7 @@ function OrdersContent() {
 
         let matchesStatus = true
         if (statusFilter === "Pending") {
-            matchesStatus = ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned'].includes(order.status)
+            matchesStatus = ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned', 'Rider Accepted'].includes(order.status)
         } else if (statusFilter === "Completed") {
             matchesStatus = ['Delivered', 'Completed'].includes(order.status)
         }
@@ -215,19 +216,7 @@ function OrdersContent() {
     const subscriptionCount = ordersData.orders.filter((o: any) => o.orderType === "Subscription").length
     const oneTimeCount = ordersData.orders.filter((o: any) => o.orderType !== "Subscription").length
 
-    const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
-        const statusMap: any = {
-            "Pending": "Accepted",
-            "Accepted": "Preparing",
-            "Preparing": "Shipped",
-            "Shipped": "Out for Delivery",
-            "Out for Delivery": "Delivered",
-            "Delivered": "Completed"
-        }
-
-        const nextStatus = statusMap[currentStatus]
-        if (!nextStatus) return  // Already at terminal status
-
+    const handleStatusUpdate = async (orderId: string, nextStatus: string) => {
         // Confirmation dialog
         const confirmed = window.confirm(`Are you sure you want to mark this order as "${nextStatus}"?`)
         if (!confirmed) return
@@ -515,15 +504,20 @@ function OrdersContent() {
                                                         <Eye size={18} />
                                                     </button>
                                                     {(() => {
-                                                        const statusMap: any = {
-                                                            "Pending": "Accepted", "Accepted": "Preparing",
-                                                            "Preparing": "Shipped", "Shipped": "Out for Delivery",
-                                                            "Out for Delivery": "Delivered", "Delivered": "Completed"
+                                                        let nextStatus = ""
+                                                        let isTerminal = false
+
+                                                        if (order.status === "Pending") {
+                                                            nextStatus = "Accepted"
+                                                        } else if (order.status === "Accepted") {
+                                                            nextStatus = "Processing"
+                                                        } else {
+                                                            isTerminal = true
                                                         }
-                                                        const isTerminal = !statusMap[order.status]
+
                                                         return (
                                                             <button
-                                                                onClick={() => !isTerminal && handleStatusUpdate(order.id, order.status)}
+                                                                onClick={() => !isTerminal && handleStatusUpdate(order.id, nextStatus)}
                                                                 disabled={isTerminal}
                                                                 className={cn(
                                                                     "p-2 rounded-lg transition-colors",
@@ -531,7 +525,7 @@ function OrdersContent() {
                                                                         ? "text-gray-300 cursor-not-allowed"
                                                                         : "hover:bg-green-50 text-text-muted hover:text-green-600"
                                                                 )}
-                                                                title={isTerminal ? `Already ${order.status}` : `Mark as ${statusMap[order.status]}`}
+                                                                title={isTerminal ? (order.status === "Delivered" ? "Order Delivered" : "No further retailer actions") : `Mark as ${nextStatus}`}
                                                             >
                                                                 <CheckCircle size={18} />
                                                             </button>

@@ -151,8 +151,8 @@ export default function Topbar() {
                     >
                         <Bell size={20} />
                         {unreadCount > 0 && (
-                            <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-destructive text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in">
-                                {unreadCount > 9 ? "9+" : unreadCount}
+                            <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-emerald-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in shadow-[0_0_8px_rgba(16,185,129,0.4)]">
+                                {unreadCount >= 10 ? "9+" : unreadCount}
                             </span>
                         )}
                     </button>
