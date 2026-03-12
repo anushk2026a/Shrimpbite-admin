@@ -481,18 +481,28 @@ function OrdersContent() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <select
-                                                    value={order.rider?._id || ""}
-                                                    onChange={(e) => handleAssignRider(order.id, e.target.value)}
-                                                    className="text-xs bg-background-soft border-transparent rounded p-1 outline-none focus:ring-1 focus:ring-primary/30"
-                                                >
-                                                    <option value="">Assign Rider</option>
-                                                    {riders.map((rider: any) => (
-                                                        <option key={rider._id} value={rider.user?._id}>
-                                                            {rider.user?.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                {(() => {
+                                                    const isLocked = ["New", "Pending", "Accepted"].includes(order.status);
+                                                    return (
+                                                        <select
+                                                            value={order.rider?._id || ""}
+                                                            onChange={(e) => handleAssignRider(order.id, e.target.value)}
+                                                            disabled={isLocked}
+                                                            title={isLocked ? "Mark order as Processing to assign a rider" : "Select a rider"}
+                                                            className={cn(
+                                                                "text-xs bg-background-soft border-transparent rounded p-1 outline-none focus:ring-1 focus:ring-primary/30 transition-all",
+                                                                isLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/30"
+                                                            )}
+                                                        >
+                                                            <option value="">{isLocked ? "🔒 Locked" : "Assign Rider"}</option>
+                                                            {riders.map((rider: any) => (
+                                                                <option key={rider._id} value={rider.user?._id}>
+                                                                    {rider.user?.name}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center gap-2">

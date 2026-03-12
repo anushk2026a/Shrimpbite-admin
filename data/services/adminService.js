@@ -6,6 +6,11 @@ const adminService = {
         return response.data;
     },
 
+    getOrders: async (params = {}) => {
+        const response = await apiClient.get("/admin/orders", { params });
+        return response.data;
+    },
+
     getRetailers: async (status = "under_review", page = 1, limit = 10, search = "") => {
         const response = await apiClient.get("/admin/retailers", {
             params: { status, page, limit, search }
