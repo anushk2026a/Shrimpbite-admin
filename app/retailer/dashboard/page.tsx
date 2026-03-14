@@ -26,7 +26,7 @@ import retailerService from "@/data/services/retailerService"
 
 export default function RetailerDashboard() {
     const [mounted, setMounted] = useState(false)
-    const [shopActive, setShopActive] = useState(true)
+    const [shopActive, setShopActive] = useState<boolean>(true)
     const [actionLoading, setActionLoading] = useState(false)
     const [statsData, setStatsData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -41,6 +41,9 @@ export default function RetailerDashboard() {
             const res = await retailerService.getDashboardStats()
             if (res.success) {
                 setStatsData(res.data)
+                if (res.data.stats.isShopActive !== undefined) {
+                    setShopActive(res.data.stats.isShopActive)
+                }
             }
         } catch (error) {
             console.error("Failed to fetch dashboard stats", error)
