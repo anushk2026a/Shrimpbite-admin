@@ -45,10 +45,14 @@ export default function RetailerLayout({ children }: { children: React.ReactNode
         verifyStatus()
     }, [user, router, checkAuth, loading])
 
+    const [mounted, setMounted] = useState(false)
     const status = user?.status || null;
-    const hasToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    if (loading || (!user && hasToken)) {
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted || loading || (!user && typeof window !== "undefined" && localStorage.getItem("token"))) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
                 <div className="w-10 h-10 border-4 border-[#FF6B00]/20 border-t-[#FF6B00] rounded-full animate-spin" />
