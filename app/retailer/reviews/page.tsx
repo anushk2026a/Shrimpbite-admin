@@ -44,7 +44,11 @@ export default function RetailerReviewsPage() {
 
     // Filter reviews
     const filteredReviews = reviews.filter((r: any) => {
-        const matchesSearch = r.comment.toLowerCase().includes(searchQuery.toLowerCase()) || r.product.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSearch = 
+            r.comment.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            r.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.type.toLowerCase().includes(searchQuery.toLowerCase())
+            
         if (!matchesSearch) return false
 
         if (filter === "Positive") return r.rating >= 4
@@ -60,10 +64,6 @@ export default function RetailerReviewsPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Customer Reviews</h1>
                     <p className="text-text-muted">Manage your shop&apos;s feedback and customer sentiment.</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all text-sm font-medium shadow-md">
-                    <Star size={16} className="fill-current" />
-                    Review Settings
-                </button>
             </div>
 
             {/* Review Stats */}
@@ -75,7 +75,8 @@ export default function RetailerReviewsPage() {
                             <Star key={i} size={14} fill={i < Math.round(stats.averageRating) ? "currentColor" : "none"} className={i < Math.round(stats.averageRating) ? "" : "text-slate-200"} />
                         ))}
                     </div>
-                    <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Average Rating</p>
+                    <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Shop Rating</p>
+                    <p className="text-[8px] text-text-muted mt-1 uppercase font-black">(Based on product reviews)</p>
                 </div>
                 <div className="md:col-span-3 bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-8">
                     <div className="flex-1 space-y-2">
@@ -98,11 +99,11 @@ export default function RetailerReviewsPage() {
                     <div className="hidden lg:flex flex-col justify-center space-y-3">
                         <div className="text-center">
                             <p className="text-2xl font-bold">{stats.totalReviews}</p>
-                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Reviews</p>
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Product Reviews</p>
                         </div>
                         <div className="text-center">
                             <p className="text-2xl font-bold text-primary">{stats.positivePercentage}%</p>
-                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Positive Sent.</p>
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Positive Sentiment</p>
                         </div>
                     </div>
                 </div>
@@ -155,9 +156,15 @@ export default function RetailerReviewsPage() {
                                             <p className="font-bold text-lg flex items-center gap-2">
                                                 {r.user}
                                                 {r.isVerified && <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest">Verified Buyer</span>}
+                                                <span className={cn(
+                                                    "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest",
+                                                    r.type === "Product" ? "bg-primary/10 text-primary" : "bg-purple-50 text-purple-600"
+                                                )}>
+                                                    {r.type}
+                                                </span>
                                             </p>
                                             <p className="text-xs text-text-muted flex items-center gap-1">
-                                                {r.date} • for <span className="text-primary font-black uppercase">{r.product}</span>
+                                                {r.date} • for <span className="text-primary font-black uppercase">{r.item}</span>
                                             </p>
                                         </div>
                                     </div>
