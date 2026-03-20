@@ -130,8 +130,8 @@ export default function EditProductPage() {
     }
 
     const handleUpdate = async () => {
-        if (!formData.name || !formData.category || !formData.price) {
-            alert("Please fill in the required fields (Name, Category, Price)")
+        if (!formData.name || !formData.price) {
+            alert("Please fill in the required fields (Name, Price)")
             return
         }
 
@@ -308,7 +308,7 @@ export default function EditProductPage() {
 
                     {/* Configuration */}
                     <section className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-6">
-                        <div className="space-y-4">
+                        {/* <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Product Category *</label>
                                 <div className="relative">
@@ -327,7 +327,7 @@ export default function EditProductPage() {
                                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={16} />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="space-y-2">
                             <label className="text-sm font-semibold">Listing Status</label>

@@ -114,7 +114,7 @@ export default function DailyPrepListPage() {
                                     <Fish size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{item.category}</p>
+                                     {/* <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{item.category}</p> */}
                                     <h4 className="text-lg font-black text-primary uppercase tracking-tight">{item.productName}</h4>
                                     <div className="flex items-center gap-3 mt-2">
                                         <div className="flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-50 px-2 py-1 rounded-md">

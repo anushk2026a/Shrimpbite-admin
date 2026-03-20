@@ -34,7 +34,7 @@ const adminMenu = [
             { name: "Retailers", icon: Users, href: "/admin/retailers" },
             { name: "App Users", icon: Users, href: "/admin/users" },
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
-            { name: "Categories", icon: Layers, href: "/admin/categories" },
+            // { name: "Categories", icon: Layers, href: "/admin/categories" },
             // { name: "Subscription Plans", icon: TicketPercent, href: "/admin/subscriptions" },
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },

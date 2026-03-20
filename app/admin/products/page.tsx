@@ -112,7 +112,7 @@ export default function ProductsPage() {
                             <tr className="bg-primary/5 text-xs font-bold text-primary uppercase tracking-wider border-b border-border-custom">
                                 <th className="px-6 py-4">No.</th>
                                 <th className="px-6 py-4">Product</th>
-                                <th className="px-6 py-4">Category</th>
+                                 {/* <th className="px-6 py-4">Category</th> */}
                                 <th className="px-6 py-4">Price</th>
                                 <th className="px-6 py-4 flex items-center gap-1">Stock <ArrowUpDown size={12} /></th>
                                 <th className="px-6 py-4">Status</th>
@@ -134,7 +134,7 @@ export default function ProductsPage() {
                                             <span className="font-semibold">{p.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-text-muted font-medium">{p.category}</td>
+                                     {/* <td className="px-6 py-4 text-text-muted font-medium">{p.category}</td> */}
                                     <td className="px-6 py-4 font-bold">₹{p.price}</td>
                                     <td className="px-6 py-4 font-bold">{p.stock}</td>
                                     <td className="px-6 py-4">

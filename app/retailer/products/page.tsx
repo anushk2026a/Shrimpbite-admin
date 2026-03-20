@@ -185,7 +185,7 @@ export default function RetailerProductsPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-primary uppercase">{p.name}</p>
-                                                    <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">{p.category?.name}</p>
+                                                    {/* <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">{p.category?.name}</p> */}
                                                 </div>
                                             </div>
                                         </td>

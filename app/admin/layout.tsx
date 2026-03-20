@@ -32,7 +32,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         verifyAdmin()
     }, [user, router, loading, checkAuth])
 
-    if (loading) {
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted || loading) {
         return <div className="min-h-screen flex items-center justify-center">
             <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
