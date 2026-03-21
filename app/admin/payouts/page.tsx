@@ -36,10 +36,17 @@ export default function AdminPayoutsPage() {
     const [showModal, setShowModal] = useState(false)
     const [transactionId, setTransactionId] = useState("")
     const [actionLoading, setActionLoading] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 10
 
     useEffect(() => {
         fetchPayouts()
     }, [])
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm, filterStatus])
 
     const fetchPayouts = async () => {
         setLoading(true)
@@ -75,6 +82,13 @@ export default function AdminPayoutsPage() {
         const matchesFilter = filterStatus === "All" || p.status === filterStatus;
         return matchesSearch && matchesFilter;
     })
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredPayouts.length / ITEMS_PER_PAGE)
+    const paginatedPayouts = filteredPayouts.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    )
 
     const stats = {
         total: payouts.reduce((acc, p) => acc + p.amount, 0),
@@ -175,7 +189,7 @@ export default function AdminPayoutsPage() {
                                         <td colSpan={5} className="px-8 py-6 h-20 bg-gray-50/30" />
                                     </tr>
                                 ))
-                            ) : filteredPayouts.length === 0 ? (
+                            ) : paginatedPayouts.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
@@ -187,7 +201,7 @@ export default function AdminPayoutsPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredPayouts.map((payout) => (
+                                paginatedPayouts.map((payout) => (
                                     <tr key={payout._id} className="hover:bg-background-soft/30 transition-colors group">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
@@ -249,6 +263,34 @@ export default function AdminPayoutsPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="px-8 py-6 bg-background-soft/30 border-t border-border-custom flex items-center justify-between">
+                        <p className="text-sm font-bold text-text-muted tracking-tight">
+                            Showing <span className="text-primary">{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</span> to <span className="text-primary">{Math.min(currentPage * ITEMS_PER_PAGE, filteredPayouts.length)}</span> of <span className="text-primary">{filteredPayouts.length}</span> entries
+                        </p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 rounded-xl bg-white border border-border-custom text-sm font-bold hover:bg-primary hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-inherit transition-all shadow-sm"
+                            >
+                                Previous
+                            </button>
+                            <div className="flex items-center px-4">
+                                <span className="text-sm font-black text-primary uppercase tracking-widest">Page {currentPage} of {totalPages}</span>
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 rounded-xl bg-white border border-border-custom text-sm font-bold hover:bg-primary hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-inherit transition-all shadow-sm"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}
