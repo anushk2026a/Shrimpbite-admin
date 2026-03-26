@@ -1,6 +1,7 @@
 import axios from "axios";
 const apiClient = axios.create({
-    baseURL: "http://16.16.9.58:5000/api",
+    baseURL: "https://api.shrimpbite.in/api",
+    //baseURL: "http://16.16.9.58:5000/api",
     //baseURL: "https://shrimpbite-backend.vercel.app/api",
     // baseURL: "http://localhost:5000/api",
     headers: {
