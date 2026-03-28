@@ -19,6 +19,20 @@ import useAuthStore from "@/data/store/useAuthStore"
 import socket from "@/data/api/socket"
 import notificationService from "@/data/services/notificationService"
 import { toast } from "sonner"
+import { adminMenu, retailerMenu } from "@/data/constants/navigation"
+import adminService from "@/data/services/adminService"
+import retailerService from "@/data/services/retailerService"
+import { X, User, ShoppingBag, Store, ExternalLink, Package, Bike } from "lucide-react"
+
+// Add local types for search results
+type SearchResult = {
+    id: string;
+    title: string;
+    subtitle?: string;
+    type: 'module' | 'user' | 'order' | 'retailer' | 'product';
+    href: string;
+    icon?: any;
+};
 
 export default function Topbar() {
     const { user } = useAuthStore()
@@ -26,7 +40,20 @@ export default function Topbar() {
     const [unreadCount, setUnreadCount] = useState(0)
     const [showDropdown, setShowDropdown] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const searchRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
+
+    // Search State
+    const [searchQuery, setSearchQuery] = useState("")
+    const [searchResults, setSearchResults] = useState<{
+        modules: SearchResult[];
+        users: SearchResult[];
+        orders: SearchResult[];
+        retailers: SearchResult[];
+        products: SearchResult[];
+    }>({ modules: [], users: [], orders: [], retailers: [], products: [] })
+    const [isSearching, setIsSearching] = useState(false)
+    const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
     useEffect(() => {
         if (!user?._id) return
@@ -47,10 +74,13 @@ export default function Topbar() {
             })
         })
 
-        // Click outside to close dropdown
+        // Click outside to close dropdowns
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowDropdown(false)
+            }
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowSearchDropdown(false)
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
@@ -60,6 +90,159 @@ export default function Topbar() {
             document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [user?._id])
+
+    // Search Logic
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.trim().length > 1) {
+                performSearch()
+            } else {
+                setSearchResults({ modules: [], users: [], orders: [], retailers: [], products: [] })
+                setShowSearchDropdown(false)
+            }
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    const performSearch = async () => {
+        setShowSearchDropdown(true)
+        setIsSearching(true)
+
+        try {
+            const role = user?.role || localStorage.getItem("role") || "admin";
+            const currentMenu = role === "retailer" ? retailerMenu : adminMenu;
+
+            // 1. Filter Modules (Instant)
+            const filteredModules: SearchResult[] = [];
+            currentMenu.forEach(group => {
+                group.items.forEach(item => {
+                    if (item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+                        filteredModules.push({
+                            id: item.href,
+                            title: item.name,
+                            subtitle: group.title,
+                            type: 'module',
+                            href: item.href,
+                            icon: item.icon
+                        });
+                    }
+                });
+            });
+
+            // 2. Fetch Data from API
+            let users: SearchResult[] = [];
+            let orders: SearchResult[] = [];
+            let retailers: SearchResult[] = [];
+            let products: SearchResult[] = [];
+
+            if (role === "admin") {
+                const [usersRes, ordersRes, retailersRes] = await Promise.allSettled([
+                    adminService.getUsers(1, 10, searchQuery),
+                    adminService.getOrders({ search: searchQuery }),
+                    adminService.getRetailers("all", 1, 10, searchQuery)
+                ]);
+
+                if (usersRes.status === 'fulfilled' && usersRes.value?.success) {
+                    const userData = usersRes.value.data || [];
+                    users = userData.map((u: any) => ({
+                        id: u._id,
+                        title: u.fullName || u.name,
+                        subtitle: u.email || u.phoneNumber,
+                        type: 'user',
+                        href: `/admin/users?search=${u.email || u.phoneNumber}`
+                    }));
+                }
+
+                if (ordersRes.status === 'fulfilled' && ordersRes.value?.success) {
+                    const orderData = ordersRes.value.data?.orders || [];
+                    orders = orderData.map((o: any) => ({
+                        id: o._id,
+                        title: `Order #${o.orderId || o._id.slice(-6)}`,
+                        subtitle: `${o.items?.[0]?.product?.name || 'Order'} - ${o.status}`,
+                        type: 'order',
+                        href: `/admin/orders?orderId=${o.orderId || o._id}`
+                    }));
+                }
+
+                if (retailersRes.status === 'fulfilled' && retailersRes.value?.success) {
+                    const retailerData = retailersRes.value.data || [];
+                    retailers = retailerData.map((r: any) => ({
+                        id: r._id,
+                        title: r.businessDetails?.businessName || r.name,
+                        subtitle: r.email || r.phone,
+                        type: 'retailer',
+                        href: `/admin/retailers?search=${r.businessDetails?.businessName || r.name}`
+                    }));
+                }
+            } else if (role === "retailer") {
+                const [ordersRes, productsRes, ridersRes] = await Promise.allSettled([
+                    retailerService.getOrders(),
+                    retailerService.getProducts(),
+                    retailerService.getRiders()
+                ]);
+
+                if (ordersRes.status === 'fulfilled' && ordersRes.value?.success) {
+                    const orderData = ordersRes.value.data?.orders || [];
+                    orders = orderData
+                        .filter((o: any) => 
+                            o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            o.product.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, 5)
+                        .map((o: any) => ({
+                            id: o.id,
+                            title: `Order #${o.id.slice(-6)}`,
+                            subtitle: `${o.product} - ${o.status}`,
+                            type: 'order',
+                            href: `/retailer/orders?search=${o.id}`
+                        }));
+                }
+
+                if (productsRes.status === 'fulfilled' && productsRes.value?.success) {
+                    const productData = productsRes.value.data || [];
+                    products = productData
+                        .filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .slice(0, 5)
+                        .map((p: any) => ({
+                            id: p._id,
+                            title: p.name,
+                            subtitle: `₹${p.price} - ${p.stock}kg in stock`,
+                            type: 'product',
+                            href: `/retailer/products/edit/${p._id}`,
+                            icon: Package
+                        }));
+                }
+
+                if (ridersRes.status === 'fulfilled' && ridersRes.value?.success) {
+                    const riderData = ridersRes.value.data || [];
+                    users = riderData
+                        .filter((r: any) => r.user?.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .slice(0, 5)
+                        .map((r: any) => ({
+                            id: r._id,
+                            title: r.user?.name,
+                            subtitle: `Rider - ${r.status}`,
+                            type: 'user',
+                            href: `/retailer/riders`,
+                            icon: Bike
+                        }));
+                }
+            }
+
+            setSearchResults({
+                modules: filteredModules,
+                users,
+                orders,
+                retailers,
+                products
+            });
+        } catch (error) {
+            console.error("Search failed", error);
+        } finally {
+            setIsSearching(false);
+        }
+    }
 
     const fetchNotifications = async () => {
         try {
@@ -129,15 +312,194 @@ export default function Topbar() {
 
     return (
         <header className="h-16 border-b border-border-custom bg-white flex items-center justify-between px-8 sticky top-0 z-40">
-            <div className="flex-1 flex items-center max-w-xl">
+            <div className="flex-1 flex items-center max-w-xl relative" ref={searchRef}>
                 <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => searchQuery.trim().length > 1 && setShowSearchDropdown(true)}
                         placeholder="Search data, users, or reports"
-                        className="w-full pl-10 pr-4 py-2 rounded-full bg-background-soft border-transparent focus:border-primary focus:bg-white transition-all text-sm outline-none"
+                        className="w-full pl-10 pr-10 py-2 rounded-full bg-background-soft border-transparent focus:border-primary focus:bg-white transition-all text-sm outline-none"
                     />
+                    {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary p-1"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
                 </div>
+
+                {/* Search Results Dropdown */}
+                {showSearchDropdown && (
+                    <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl border border-border-custom shadow-2xl animate-in slide-in-from-top-2 duration-200 z-50 overflow-hidden max-h-[80vh] flex flex-col">
+                        <div className="p-3 border-b border-border-custom bg-background-soft/30 flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-text-muted tracking-widest">
+                                {isSearching ? "Searching..." : "Search Results"}
+                            </span>
+                            <span className="text-[10px] text-text-muted">ESC to close</span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto scrollbar-hide py-2">
+                            {/* Modules */}
+                            {searchResults.modules?.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="px-4 py-1 text-[10px] font-bold text-primary uppercase">Modules</div>
+                                    {searchResults.modules.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => {
+                                                router.push(item.href);
+                                                setShowSearchDropdown(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="w-full px-4 py-2 hover:bg-primary/5 flex items-center gap-3 transition-colors text-left group"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                                <item.icon size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{item.title}</p>
+                                                <p className="text-[10px] text-text-muted">{item.subtitle}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Products */}
+                            {searchResults.products?.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="px-4 py-1 text-[10px] font-bold text-orange-500 uppercase">Products</div>
+                                    {searchResults.products.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => {
+                                                router.push(item.href);
+                                                setShowSearchDropdown(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="w-full px-4 py-2 hover:bg-orange-50 flex items-center gap-3 transition-colors text-left"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
+                                                <Package size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{item.title}</p>
+                                                <p className="text-[10px] text-text-muted">{item.subtitle}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Users */}
+                            {searchResults.users?.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="px-4 py-1 text-[10px] font-bold text-blue-500 uppercase">
+                                        {user?.role === 'retailer' ? 'Riders' : 'Users'}
+                                    </div>
+                                    {searchResults.users.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => {
+                                                router.push(item.href);
+                                                setShowSearchDropdown(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="w-full px-4 py-2 hover:bg-blue-50 flex items-center gap-3 transition-colors text-left"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                                {item.icon ? <item.icon size={16} /> : <User size={16} />}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{item.title}</p>
+                                                <p className="text-[10px] text-text-muted">{item.subtitle}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Orders */}
+                            {searchResults.orders?.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="px-4 py-1 text-[10px] font-bold text-emerald-500 uppercase">Orders</div>
+                                    {searchResults.orders.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => {
+                                                router.push(item.href);
+                                                setShowSearchDropdown(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="w-full px-4 py-2 hover:bg-emerald-50 flex items-center gap-3 transition-colors text-left"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                                <ShoppingBag size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{item.title}</p>
+                                                <p className="text-[10px] text-text-muted">{item.subtitle}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Retailers */}
+                            {searchResults.retailers?.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="px-4 py-1 text-[10px] font-bold text-amber-500 uppercase">Retailers</div>
+                                    {searchResults.retailers.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => {
+                                                router.push(item.href);
+                                                setShowSearchDropdown(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="w-full px-4 py-2 hover:bg-amber-50 flex items-center gap-3 transition-colors text-left"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                                                <Store size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{item.title}</p>
+                                                <p className="text-[10px] text-text-muted">{item.subtitle}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Empty State */}
+                            {!isSearching && 
+                             searchResults.modules?.length === 0 && 
+                             searchResults.users?.length === 0 && 
+                             searchResults.orders?.length === 0 && 
+                             searchResults.retailers?.length === 0 && 
+                             searchResults.products?.length === 0 && (
+                                <div className="p-8 text-center text-text-muted">
+                                    <Search size={32} className="mx-auto mb-3 opacity-20" />
+                                    <p className="text-xs font-medium uppercase tracking-tight">No results found for "{searchQuery}"</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {searchQuery.length > 1 && (
+                            <div className="p-3 border-t border-border-custom bg-background-soft/20 text-center">
+                                <button className="text-[10px] font-black uppercase text-text-muted hover:text-primary flex items-center justify-center gap-2 mx-auto">
+                                    Search everywhere for "{searchQuery}" 
+                                    <ExternalLink size={10} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center gap-4">

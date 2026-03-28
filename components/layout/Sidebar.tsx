@@ -3,82 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-    LayoutDashboard,
-    ShoppingCart,
-    Users,
-    TicketPercent,
-    Layers,
-    ArrowLeftRight,
-    PlusCircle,
-    List,
-    Star,
-    UserCog,
-    ShieldCheck,
     ChevronLeft,
     ChevronRight,
-    Wallet,
-    BellRing,
-    CalendarCheck
+    ArrowLeftRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import useAuthStore from "@/data/store/useAuthStore"
-
-type MenuItem = {
-    name: string;
-    icon: React.ElementType;
-    href: string;
-};
-
-type MenuGroup = {
-    title: string;
-    items: MenuItem[];
-};
-
-const adminMenu: MenuGroup[] = [
-    {
-        title: "Main menu",
-        items: [
-            { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
-            // { name: "Shops", icon: Star, href: "/admin/shops" },
-            { name: "Retailers", icon: Users, href: "/admin/retailers" },
-            { name: "App Users", icon: Users, href: "/admin/users" },
-            { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
-            { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
-            { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
-        ]
-    },
-    {
-        title: "Admin Control",
-        items: [
-            { name: "Admin role", icon: UserCog, href: "/admin/roles" },
-            { name: "Control Authority", icon: ShieldCheck, href: "/admin/authority" },
-        ]
-    }
-]
-
-const retailerMenu: MenuGroup[] = [
-    {
-        title: "Store Management",
-        items: [
-            { name: "Dashboard", icon: LayoutDashboard, href: "/retailer/dashboard" },
-            { name: "My Products", icon: List, href: "/retailer/products" },
-            // { name: "Add Product", icon: PlusCircle, href: "/retailer/products/add" },
-            { name: "Orders", icon: ShoppingCart, href: "/retailer/orders" },
-            { name: "Riders", icon: Users, href: "/retailer/riders" },
-            { name: "Daily Prep List", icon: CalendarCheck, href: "/retailer/prep-list" },
-            { name: "Reviews", icon: Star, href: "/retailer/reviews" },
-            { name: "Store Settings", icon: UserCog, href: "/retailer/settings" },
-        ]
-    },
-    {
-        title: "Business",
-        items: [
-            { name: "Revenue", icon: ArrowLeftRight, href: "/retailer/revenue" },
-            { name: "Customers", icon: Users, href: "/retailer/customers" },
-        ]
-    }
-]
+import { adminMenu, retailerMenu, MenuGroup } from "@/data/constants/navigation"
 
 export default function Sidebar() {
     const pathname = usePathname()
