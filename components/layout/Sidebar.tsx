@@ -14,7 +14,6 @@ import {
     Star,
     UserCog,
     ShieldCheck,
-    LogOut,
     ChevronLeft,
     ChevronRight,
     Wallet,
@@ -25,7 +24,18 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import useAuthStore from "@/data/store/useAuthStore"
 
-const adminMenu = [
+type MenuItem = {
+    name: string;
+    icon: React.ElementType;
+    href: string;
+};
+
+type MenuGroup = {
+    title: string;
+    items: MenuItem[];
+};
+
+const adminMenu: MenuGroup[] = [
     {
         title: "Main menu",
         items: [
@@ -34,11 +44,8 @@ const adminMenu = [
             { name: "Retailers", icon: Users, href: "/admin/retailers" },
             { name: "App Users", icon: Users, href: "/admin/users" },
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
-            // { name: "Categories", icon: Layers, href: "/admin/categories" },
-            // { name: "Subscription Plans", icon: TicketPercent, href: "/admin/subscriptions" },
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
-            // { name: "Transaction", icon: ArrowLeftRight, href: "/admin/transactions" },
         ]
     },
     {
@@ -50,7 +57,7 @@ const adminMenu = [
     }
 ]
 
-const retailerMenu = [
+const retailerMenu: MenuGroup[] = [
     {
         title: "Store Management",
         items: [
@@ -99,9 +106,21 @@ export default function Sidebar() {
         return <aside className="w-64 border-r border-border-custom bg-white h-screen sticky top-0 animate-pulse" />
     }
 
-    const menuGroups = role === "retailer" ? retailerMenu : adminMenu
-    const userLabel = user?.name || (role === "retailer" ? "Shrimp Retailer" : "Shrimbite Admin")
-    const userIdentity = user?.email || (role === "retailer" ? "Shop Owner" : "admin@shrimpbite.in")
+    const filterMenuByPermissions = (menuGroups: MenuGroup[]) => {
+        if (!user || role !== "admin") return menuGroups;
+        
+        // Super Admin (no specific adminRole assigned) sees everything
+        if (!user.adminRole) return menuGroups;
+
+        const allowedModules = user.adminRole.modules || [];
+
+        return menuGroups.map(group => ({
+            ...group,
+            items: group.items.filter((item) => allowedModules.includes(item.name))
+        })).filter(group => group.items.length > 0);
+    };
+
+    const menuGroups = role === "retailer" ? retailerMenu : filterMenuByPermissions(adminMenu);
 
     return (
         <aside className={cn(
@@ -179,47 +198,14 @@ export default function Sidebar() {
                 ))}
             </div>
 
-            {/* User Session */}
+            {/* Footer Actions */}
             <div className="p-4 border-t border-border-custom mt-auto">
-                <div className={cn(
-                    "flex items-center gap-3 p-2 rounded-xl transition-all duration-300 w-full overflow-hidden whitespace-nowrap",
-                    !collapsed && "bg-background-soft"
-                )}>
-                    <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center overflow-hidden shrink-0">
-                        <img
-                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${role}`}
-                            alt="User"
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-                    <div className={cn(
-                        "flex-1 min-w-0 transition-all duration-300",
-                        collapsed ? "opacity-0 w-0" : "opacity-100 w-auto ml-3"
-                    )}>
-                        <p className="text-sm font-bold truncate">{userLabel}</p>
-                        <p className="text-xs text-text-muted truncate">{userIdentity}</p>
-                    </div>
-                    <button
-                        onClick={() => {
-                            document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                            localStorage.removeItem("role")
-                            window.location.href = "/login"
-                        }}
-                        className={cn(
-                            "text-text-muted hover:text-destructive transition-colors",
-                            collapsed && "p-2 hover:bg-red-50 rounded-lg"
-                        )}
-                        title="Logout"
-                    >
-                        <LogOut size={18} />
-                    </button>
-                </div>
                 <Link
                     href="https://shrimpbite.in"
                     target="_blank"
                     className={cn(
-                        "flex items-center justify-between mt-4 px-3 py-2 rounded-lg border border-border-custom hover:border-primary transition-all text-xs font-medium overflow-hidden whitespace-nowrap",
-                        collapsed ? "w-0 opacity-0 border-transparent p-0 mt-0" : "w-full opacity-100"
+                        "flex items-center justify-between px-3 py-2 rounded-lg border border-border-custom hover:border-primary transition-all text-xs font-medium overflow-hidden whitespace-nowrap",
+                        collapsed ? "w-0 opacity-0 border-transparent p-0" : "w-full opacity-100"
                     )}
                 >
                     <span>Shrimbite Website</span>

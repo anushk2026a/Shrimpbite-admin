@@ -19,6 +19,11 @@ const authService = {
     updateOnboarding: async (data) => {
         const response = await apiClient.put("/auth/onboarding", data);
         return response.data;
+    },
+
+    resetAdminPassword: async (data) => {
+        const response = await apiClient.post("/auth/reset-admin-password", data);
+        return response.data;
     }
 };
 

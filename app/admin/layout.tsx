@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Sidebar from "@/components/layout/Sidebar"
 import Topbar from "@/components/layout/Topbar"
 import useAuthStore from "@/data/store/useAuthStore"
+import ForcePasswordReset from "@/components/auth/ForcePasswordReset"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -33,6 +34,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, [user, router, loading, checkAuth])
 
     const [mounted, setMounted] = useState(false)
+    const [dismissedReset, setDismissedReset] = useState(false)
+
     useEffect(() => {
         setMounted(true)
     }, [])
@@ -44,7 +47,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen relative">
+            {user?.isPasswordResetRequired && !dismissedReset && (
+                <ForcePasswordReset onClose={() => setDismissedReset(true)} />
+            )}
             <Sidebar />
             <div className="flex-1 flex flex-col">
                 <Topbar />
