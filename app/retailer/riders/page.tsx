@@ -14,8 +14,6 @@ export default function RidersPage() {
     const [isEditMode, setIsEditMode] = useState(false)
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
-        password: "",
         phone: "",
         vehicleType: "Bike",
         plateNumber: ""
@@ -61,7 +59,7 @@ export default function RidersPage() {
                 toast.success("Rider added successfully")
                 setShowAddModal(false)
                 fetchRiders()
-                setFormData({ name: "", email: "", password: "", phone: "", vehicleType: "Bike", plateNumber: "" })
+                setFormData({ name: "", phone: "", vehicleType: "Bike", plateNumber: "" })
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to add rider")
@@ -176,7 +174,7 @@ export default function RidersPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-lg">{rider.user?.name}</h3>
-                                        <p className="text-xs text-text-muted">{rider.user?.email}</p>
+                                        <p className="text-xs text-text-muted">{rider.user?.phone}</p>
                                     </div>
                                 </div>
                                 {/* <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${rider.status === 'Available' ? 'bg-green-100 text-green-700' :
@@ -247,32 +245,6 @@ export default function RidersPage() {
                                     className="w-full px-4 py-2.5 rounded-xl border border-border-custom focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     placeholder="Enter rider name"
                                 />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold ml-1">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        value={formData.email}
-                                        onChange={handleInput}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border-custom focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                                        placeholder="email@example.com"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold ml-1">Password</label>
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        required
-                                        value={formData.password}
-                                        onChange={handleInput}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border-custom focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                                        placeholder="••••••••"
-                                    />
-                                </div>
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-sm font-semibold ml-1">Phone Number</label>
@@ -464,15 +436,6 @@ export default function RidersPage() {
                                         <div>
                                             <h4 className="text-xs font-black uppercase tracking-widest text-text-muted mb-3">Contact Information</h4>
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-4 group">
-                                                    <div className="w-10 h-10 rounded-xl bg-background-soft flex items-center justify-center text-text-muted group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                                                        <Mail size={18} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-text-muted font-bold uppercase tracking-tighter">Email Address</p>
-                                                        <p className="text-sm font-black text-foreground">{selectedRider.user?.email}</p>
-                                                    </div>
-                                                </div>
                                                 <div className="flex items-center gap-4 group">
                                                     <div className="w-10 h-10 rounded-xl bg-background-soft flex items-center justify-center text-text-muted group-hover:bg-primary/10 group-hover:text-primary transition-all">
                                                         <Phone size={18} />
