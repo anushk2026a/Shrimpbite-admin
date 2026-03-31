@@ -12,13 +12,13 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import useAuthStore from "@/data/store/useAuthStore"
 
 export default function RegisterPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
-    const { register, loading, error: storeError } = useAuthStore()
-    const [localError, setLocalError] = useState("")
+    const { register, loading } = useAuthStore()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -26,17 +26,26 @@ export default function RegisterPage() {
         password: ""
     })
 
-    const error = storeError || localError;
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLocalError("")
 
         try {
-            await register(formData)
-            router.push("/onboarding")
-        } catch {
-            // Error handled by store
+            await toast.promise(register(formData), {
+                loading: 'Creating your account...',
+                success: () => {
+                    router.push("/onboarding")
+                    return 'Account created! Welcome to Shrimpbite.'
+                },
+                error: (err) => {
+                    const msg = err.response?.data?.message || err.message || 'Registration failed'
+                    if (msg === "User already exists") {
+                        return "This account already exists. Please login instead."
+                    }
+                    return msg
+                },
+            })
+        } catch (err) {
+            console.error("Registration error:", err)
         }
     }
 
@@ -106,12 +115,6 @@ export default function RegisterPage() {
                                 <h2 className="text-4xl font-bold text-[#1f2a1f] mb-2">Join Shrimpbite</h2>
                                 <p className="text-sm text-gray-800">Create your owner account to get started</p>
                             </div>
-
-                            {error && (
-                                <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-[13px] font-black text-center animate-shake">
-                                    {error}
-                                </div>
-                            )}
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-4">
