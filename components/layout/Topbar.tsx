@@ -185,8 +185,8 @@ export default function Topbar() {
                 if (ordersRes.status === 'fulfilled' && ordersRes.value?.success) {
                     const orderData = ordersRes.value.data?.orders || [];
                     orders = orderData
-                        .filter((o: any) => 
-                            o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        .filter((o: any) =>
+                            o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             o.product.toLowerCase().includes(searchQuery.toLowerCase())
                         )
                         .slice(0, 5)
@@ -324,7 +324,7 @@ export default function Topbar() {
                         className="w-full pl-10 pr-10 py-2 rounded-full bg-background-soft border-transparent focus:border-primary focus:bg-white transition-all text-sm outline-none"
                     />
                     {searchQuery && (
-                        <button 
+                        <button
                             onClick={() => setSearchQuery("")}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary p-1"
                         >
@@ -340,7 +340,6 @@ export default function Topbar() {
                             <span className="text-[10px] font-black uppercase text-text-muted tracking-widest">
                                 {isSearching ? "Searching..." : "Search Results"}
                             </span>
-                            <span className="text-[10px] text-text-muted">ESC to close</span>
                         </div>
 
                         <div className="flex-1 overflow-y-auto scrollbar-hide py-2">
@@ -477,27 +476,18 @@ export default function Topbar() {
                             )}
 
                             {/* Empty State */}
-                            {!isSearching && 
-                             searchResults.modules?.length === 0 && 
-                             searchResults.users?.length === 0 && 
-                             searchResults.orders?.length === 0 && 
-                             searchResults.retailers?.length === 0 && 
-                             searchResults.products?.length === 0 && (
-                                <div className="p-8 text-center text-text-muted">
-                                    <Search size={32} className="mx-auto mb-3 opacity-20" />
-                                    <p className="text-xs font-medium uppercase tracking-tight">No results found for "{searchQuery}"</p>
-                                </div>
-                            )}
+                            {!isSearching &&
+                                searchResults.modules?.length === 0 &&
+                                searchResults.users?.length === 0 &&
+                                searchResults.orders?.length === 0 &&
+                                searchResults.retailers?.length === 0 &&
+                                searchResults.products?.length === 0 && (
+                                    <div className="p-8 text-center text-text-muted">
+                                        <Search size={32} className="mx-auto mb-3 opacity-20" />
+                                        <p className="text-xs font-medium uppercase tracking-tight">No results found for "{searchQuery}"</p>
+                                    </div>
+                                )}
                         </div>
-
-                        {searchQuery.length > 1 && (
-                            <div className="p-3 border-t border-border-custom bg-background-soft/20 text-center">
-                                <button className="text-[10px] font-black uppercase text-text-muted hover:text-primary flex items-center justify-center gap-2 mx-auto">
-                                    Search everywhere for "{searchQuery}" 
-                                    <ExternalLink size={10} />
-                                </button>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

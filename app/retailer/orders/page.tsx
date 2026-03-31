@@ -226,24 +226,30 @@ function OrdersContent() {
     const oneTimeCount = ordersData.orders.filter((o: any) => o.orderType !== "Subscription").length
 
     const handleStatusUpdate = async (orderId: string, nextStatus: string) => {
-        toast(`Mark order as "${nextStatus}"?`, {
-            action: {
-                label: "Confirm",
-                onClick: async () => {
-                    try {
-                        const res = await retailerService.updateOrderStatus(orderId, nextStatus)
-                        if (res.success) {
-                            toast.success(`Order marked as ${nextStatus}`)
-                            fetchOrders()
-                        } else {
-                            toast.error(res.message || "Failed to update status")
-                        }
-                    } catch (error: any) {
-                        toast.error(error?.response?.data?.message || "Failed to update status")
-                    }
+        const updateLogic = async () => {
+            try {
+                const res = await retailerService.updateOrderStatus(orderId, nextStatus)
+                if (res.success) {
+                    toast.success(`Order marked as ${nextStatus}`)
+                    fetchOrders()
+                } else {
+                    toast.error(res.message || "Failed to update status")
                 }
+            } catch (error: any) {
+                toast.error(error?.response?.data?.message || "Failed to update status")
             }
-        })
+        }
+
+        if (nextStatus === "Accepted") {
+            updateLogic()
+        } else {
+            toast(`Mark order as "${nextStatus}"?`, {
+                action: {
+                    label: "Confirm",
+                    onClick: updateLogic
+                }
+            })
+        }
     }
 
     const handleAssignRider = async (orderId: string, riderId: string) => {
@@ -639,7 +645,7 @@ function OrdersContent() {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-3 py-1.5 text-xs font-bold rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all"
+                                    className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border-custom bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all text-text-muted hover:text-primary"
                                 >
                                     Previous
                                 </button>
@@ -656,10 +662,10 @@ function OrdersContent() {
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
                                                 className={cn(
-                                                    "w-8 h-8 text-xs font-bold rounded-lg transition-all",
+                                                    "w-8 h-8 text-xs font-bold rounded-xl transition-all",
                                                     currentPage === pageNum
-                                                        ? "bg-primary text-white shadow-md shadow-primary/20"
-                                                        : "bg-white border hover:bg-background-soft"
+                                                        ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                        : "bg-white border border-border-custom hover:bg-background-soft text-text-muted"
                                                 )}
                                             >
                                                 {pageNum}
@@ -670,7 +676,7 @@ function OrdersContent() {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage === totalPages}
-                                    className="px-3 py-1.5 text-xs font-bold rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all"
+                                    className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border-custom bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all text-text-muted hover:text-primary"
                                 >
                                     Next
                                 </button>

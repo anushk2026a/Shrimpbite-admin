@@ -100,11 +100,6 @@ export default function RetailerCustomersPage() {
                     <h1 className="text-2xl font-bold tracking-tight">My Customers</h1>
                     <p className="text-text-muted">Manage your shop&apos;s customer base and loyalty.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="p-2 rounded-lg border bg-white hover:bg-background-soft">
-                        <MoreVertical size={18} />
-                    </button>
-                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -175,7 +170,6 @@ export default function RetailerCustomersPage() {
                                     <th className="px-6 py-4">Purchase History</th>
                                     <th className="px-6 py-4">Spent</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y text-sm">
@@ -223,11 +217,6 @@ export default function RetailerCustomersPage() {
                                                     {c.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <button className="p-2 hover:bg-primary-light hover:text-primary rounded-lg transition-colors">
-                                                    <MessageSquare size={16} />
-                                                </button>
-                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -237,7 +226,7 @@ export default function RetailerCustomersPage() {
                 </div>
 
                 {selectedCustomer ? (
-                    <div className="bg-white rounded-2xl border shadow-sm p-6 space-y-6 h-fit sticky top-6">
+                    <div className="bg-white rounded-2xl border border-border-custom shadow-sm p-6 space-y-6 h-fit sticky top-6">
                         <div className="text-center">
                             <div className="w-20 h-20 rounded-full bg-primary-light overflow-hidden mx-auto mb-3 border-2 border-primary/20">
                                 <img src={selectedCustomer.image} alt={selectedCustomer.name} className="w-full h-full object-cover" />
@@ -272,7 +261,7 @@ export default function RetailerCustomersPage() {
                         </button>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl border shadow-sm p-6 flex flex-col items-center justify-center text-center h-[300px] text-text-muted sticky top-6">
+                    <div className="bg-white rounded-2xl border border-border-custom shadow-sm p-6 flex flex-col items-center justify-center text-center h-[300px] text-text-muted sticky top-6">
                         <Users size={48} className="mb-4 opacity-20" />
                         <p>Select a customer to view details</p>
                     </div>

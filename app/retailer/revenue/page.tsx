@@ -143,14 +143,6 @@ export default function RetailerRevenuePage() {
             <div className="bg-white rounded-[40px] border border-border-custom shadow-xl overflow-hidden">
                 <div className="p-8 border-b border-border-custom flex items-center justify-between">
                     <h3 className="text-xl font-black text-primary uppercase tracking-tight">Recent Settlements</h3>
-                    <div className="flex items-center gap-2">
-                        <button className="p-2.5 rounded-xl bg-background-soft text-text-muted hover:text-primary transition-all border border-border-custom">
-                            <Filter size={18} />
-                        </button>
-                        <button className="p-2.5 rounded-xl bg-background-soft text-text-muted hover:text-primary transition-all border border-border-custom">
-                            <Download size={18} />
-                        </button>
-                    </div>
                 </div>
 
                 <div className="overflow-x-auto">

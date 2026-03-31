@@ -115,7 +115,7 @@ export default function StoreSettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
                     {/* Basic Info */}
-                    <section className="bg-white p-6 rounded-2xl border shadow-sm space-y-6">
+                    <section className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm space-y-6">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="p-2 rounded-lg bg-primary-light text-primary">
                                 <Store size={20} />
@@ -175,7 +175,7 @@ export default function StoreSettingsPage() {
                     </section>
 
                     {/* Address */}
-                    <section className="bg-white p-6 rounded-2xl border shadow-sm space-y-6">
+                    <section className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm space-y-6">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
                                 <MapPin size={20} />
@@ -220,7 +220,7 @@ export default function StoreSettingsPage() {
 
                 {/* Right Column - Media */}
                 <div className="space-y-6">
-                    <section className="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                    <section className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm space-y-4">
                         <h3 className="text-lg font-bold">Shop Banner</h3>
                         <p className="text-xs text-text-muted">This image will be shown to customers when they browse shops.</p>
 

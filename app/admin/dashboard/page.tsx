@@ -146,16 +146,7 @@ export default function Dashboard() {
                     <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
                     <p className="text-text-muted">Welcome back, Admin. Here&apos;s a summary of all shop activities.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-white hover:bg-background-soft transition-all text-sm font-medium">
-                        <Filter size={16} />
-                        Filter
-                    </button>
-                    {/* <Link href="/admin/shops" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary transition-all text-sm font-medium shadow-md shadow-primary/20">
-                        <Plus size={16} />
-                        Add Shop
-                    </Link> */}
-                </div>
+
             </div>
 
             {/* Stats Grid */}

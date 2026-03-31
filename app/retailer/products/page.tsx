@@ -87,7 +87,7 @@ export default function RetailerProductsPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
                     <div className="p-3 rounded-xl bg-primary-light text-primary">
                         <Package size={24} />
                     </div>
@@ -96,7 +96,7 @@ export default function RetailerProductsPage() {
                         <h3 className="text-2xl font-bold">{products.length}</h3>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
                     <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
                         <TrendingUp size={24} />
                     </div>
@@ -105,7 +105,7 @@ export default function RetailerProductsPage() {
                         <h3 className="text-2xl font-bold">{products.filter(p => p.status === "Published").length}</h3>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
                     <div className="p-3 rounded-xl bg-red-50 text-red-600">
                         <AlertCircle size={24} />
                     </div>
@@ -116,8 +116,8 @@ export default function RetailerProductsPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-300 flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-border-custom flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-1 bg-background-soft p-1 rounded-lg">
                         {["All Products", "Published", "Draft"].map((tab) => (
                             <button
@@ -163,7 +163,7 @@ export default function RetailerProductsPage() {
                     ) : (
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-primary/5 text-xs font-black text-primary uppercase tracking-widest border-b border-gray-300">
+                                <tr className="bg-primary/5 text-xs font-black text-primary uppercase tracking-widest border-b border-border-custom">
                                     <th className="px-6 py-4">No.</th>
                                     <th className="px-6 py-4">Product</th>
                                     <th className="px-6 py-4 text-center">Stock</th>
@@ -172,7 +172,7 @@ export default function RetailerProductsPage() {
                                     <th className="px-6 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-300 text-sm">
+                            <tbody className="divide-y divide-border-custom text-sm">
                                 {filteredProducts.map((p, i) => (
                                     <tr key={p._id} className="hover:bg-background-soft/50 transition-colors">
                                         <td className="px-6 py-4">
@@ -230,14 +230,14 @@ export default function RetailerProductsPage() {
                     )}
                 </div>
 
-                <div className="p-6 border-t border-gray-300 flex items-center justify-between">
-                    <button className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-background-soft transition-all flex items-center gap-2">
+                <div className="p-6 border-t border-border-custom flex items-center justify-between">
+                    <button className="px-4 py-2 border border-border-custom rounded-xl text-sm font-bold hover:bg-background-soft transition-all flex items-center gap-2 text-text-muted hover:text-primary">
                         <ChevronLeft size={16} /> Previous
                     </button>
                     <div className="flex items-center gap-1">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold bg-primary-light text-primary">1</button>
+                        <button className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-black bg-primary text-white shadow-lg shadow-primary/20">1</button>
                     </div>
-                    <button className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-background-soft transition-all flex items-center gap-2">
+                    <button className="px-4 py-2 border border-border-custom rounded-xl text-sm font-bold hover:bg-background-soft transition-all flex items-center gap-2 text-text-muted hover:text-primary">
                         Next <ChevronRight size={16} />
                     </button>
                 </div>
