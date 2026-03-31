@@ -11,7 +11,8 @@ import {
     Package,
     RefreshCw,
     ChevronRight,
-    Lock
+    Lock,
+    Clock
 } from "lucide-react"
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
@@ -46,7 +47,8 @@ function OrdersContent() {
     const [statusFilter, setStatusFilter] = useState<"All" | "Pending" | "Completed">("All")
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
     const [currentPage, setCurrentPage] = useState(1)
-    
+    const [processingStatusConfirm, setProcessingStatusConfirm] = useState<{orderId: string, nextStatus: string, productName: string} | null>(null)
+
     // Tooltip State
     const [hoveredOrderId, setHoveredOrderId] = useState<string | null>(null)
     const [tooltipStep, setTooltipStep] = useState(1)
@@ -242,6 +244,9 @@ function OrdersContent() {
 
         if (nextStatus === "Accepted") {
             updateLogic()
+        } else if (nextStatus === "Processing") {
+            const order = ordersData.orders.find((o: any) => o.id === orderId)
+            setProcessingStatusConfirm({ orderId, nextStatus, productName: order?.product || "this order" })
         } else {
             toast(`Mark order as "${nextStatus}"?`, {
                 action: {
@@ -323,9 +328,6 @@ function OrdersContent() {
                         >
                             <Download size={16} />
                             Export List
-                        </button>
-                        <button className="p-2 rounded-lg border bg-white hover:bg-background-soft">
-                            <MoreVertical size={18} />
                         </button>
                     </div>
                 </div>
@@ -501,7 +503,7 @@ function OrdersContent() {
                                             <td className="px-6 py-4 relative group/rider">
                                                 {(() => {
                                                     const isLocked = ["New", "Pending", "Accepted"].includes(order.status);
-                                                    
+
                                                     const handleMouseEnter = () => {
                                                         if (!isLocked) return;
                                                         if (leaveTimer.current) clearTimeout(leaveTimer.current);
@@ -517,7 +519,7 @@ function OrdersContent() {
                                                     };
 
                                                     return (
-                                                        <div 
+                                                        <div
                                                             className="relative"
                                                             onMouseEnter={handleMouseEnter}
                                                             onMouseLeave={handleMouseLeave}
@@ -541,7 +543,7 @@ function OrdersContent() {
 
                                                             {/* Custom Interactive Tooltip */}
                                                             {hoveredOrderId === order.id && isLocked && (
-                                                                <div 
+                                                                <div
                                                                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 bg-white border border-border-custom p-3 rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-1 duration-200"
                                                                     onMouseEnter={() => {
                                                                         if (leaveTimer.current) clearTimeout(leaveTimer.current);
@@ -551,7 +553,7 @@ function OrdersContent() {
                                                                         {(() => {
                                                                             const targetStatus = order.status === "Pending" ? "Accepted" : "Processing";
                                                                             const actionGoal = order.status === "Pending" ? "Accept order" : "mark as processing";
-                                                                            
+
                                                                             if (tooltipStep === 1) {
                                                                                 return (
                                                                                     <div className="flex items-start gap-2">
@@ -560,7 +562,7 @@ function OrdersContent() {
                                                                                     </div>
                                                                                 );
                                                                             }
-                                                                            
+
                                                                             return (
                                                                                 <div className="flex items-start gap-2">
                                                                                     <div className="mt-0.5 text-primary"><CheckCircle size={14} /></div>
@@ -568,9 +570,9 @@ function OrdersContent() {
                                                                                 </div>
                                                                             );
                                                                         })()}
-                                                                        
+
                                                                         <div className="flex justify-end border-t pt-2 mt-1">
-                                                                            <button 
+                                                                            <button
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
                                                                                     setTooltipStep(tooltipStep === 1 ? 2 : 1);
@@ -768,6 +770,52 @@ function OrdersContent() {
                         </div>
                     </div>
                 )}
+
+            {/* Processing Confirmation Modal */}
+            {processingStatusConfirm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md animate-in fade-in duration-300"
+                        onClick={() => setProcessingStatusConfirm(null)}
+                    />
+                    <div className="relative bg-white rounded-[28px] border border-border-custom shadow-2xl w-full max-w-[340px] p-6 animate-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                            <Clock size={24} />
+                        </div>
+                        <h3 className="text-xl font-black text-primary uppercase tracking-tight mb-2">Mark as Processing?</h3>
+                        <p className="text-sm text-text-muted leading-relaxed mb-6">
+                            Do you want to mark <span className="font-bold text-primary">{processingStatusConfirm.productName}</span> as <span className="font-bold italic text-primary">processing</span>?
+                        </p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setProcessingStatusConfirm(null)}
+                                className="flex-1 py-3 rounded-xl border border-border-custom font-black uppercase tracking-widest text-[10px] hover:bg-background-soft transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const { orderId, nextStatus } = processingStatusConfirm;
+                                    setProcessingStatusConfirm(null);
+                                    try {
+                                        const res = await retailerService.updateOrderStatus(orderId, nextStatus)
+                                        if (res.success) {
+                                            toast.success(`Order marked as ${nextStatus}`)
+                                            fetchOrders()
+                                        } else {
+                                            toast.error(res.message || "Failed to update status")
+                                        }
+                                    } catch (error: any) {
+                                        toast.error(error?.response?.data?.message || "Failed to update status")
+                                    }
+                                }}
+                                className="flex-1 py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     )
 }

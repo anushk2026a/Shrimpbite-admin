@@ -3,8 +3,6 @@
 import {
     Search,
     Bell,
-    Moon,
-    ChevronDown,
     LogOut,
     CheckCircle2,
     Clock,
@@ -568,17 +566,11 @@ export default function Topbar() {
                                     </div>
                                 )}
                             </div>
-
-                            <div className="p-3 border-t border-border-custom text-center bg-background-soft/20">
-                                <button className="text-[10px] font-black underline uppercase text-text-muted hover:text-primary transition-colors">
-                                    View All Activity
-                                </button>
-                            </div>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-2 pl-4 border-l group">
+                <div className="flex items-center gap-2 pl-4 border-l border-border-custom group">
                     <div className="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center overflow-hidden border border-border-custom">
                         <img
                             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Admin'}`}
