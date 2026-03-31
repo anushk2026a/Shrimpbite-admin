@@ -144,7 +144,6 @@ export default function RetailerDashboard() {
                             <div className={cn("p-3 rounded-xl", stat.color)}>
                                 <stat.icon size={24} />
                             </div>
-                            <MoreVertical className="text-text-muted cursor-pointer group-hover:text-foreground" size={18} />
                         </div>
                         <p className="text-sm font-medium text-text-muted mb-1">{stat.title}</p>
                         <div className="flex items-end gap-2">

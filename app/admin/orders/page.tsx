@@ -12,7 +12,8 @@ import {
     Download,
     Package,
     RefreshCw,
-    Eye
+    Eye,
+    X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
@@ -243,7 +244,7 @@ function AdminOrdersContent() {
                                 <th className="px-6 py-4">Price</th>
                                 <th className="px-6 py-4">Payment</th>
                                 <th className="px-6 py-4">Status</th>
-                                <th className="px-1 py-4"></th>
+                                <th className="px-6 py-4 text-center">View</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-custom text-sm">
@@ -315,12 +316,12 @@ function AdminOrdersContent() {
                                                 {order.status}
                                             </span>
                                         </td>
-                                        <td className="px-1 py-4">
+                                        <td className="px-6 py-4 text-center">
                                             <button
                                                 onClick={() => setSelectedOrder(order)}
-                                                className="p-1 hover:bg-primary-light text-text-muted hover:text-primary rounded-md transition-all"
+                                                className="p-2 hover:bg-primary-light text-text-muted hover:text-primary rounded-lg transition-all"
                                             >
-                                                <Eye size={16} />
+                                                <Eye size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -372,50 +373,74 @@ function AdminOrdersContent() {
 
             {/* Simple Detail Overlay (if needed) */}
             {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Order Details</h3>
-                            <button onClick={() => setSelectedOrder(null)} className="text-text-muted hover:text-text text-xl">&times;</button>
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-300"
+                    onClick={() => setSelectedOrder(null)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-lg rounded-[32px] border border-border-custom shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6 border-b border-border-custom flex items-center justify-between bg-primary/5">
+                            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Order Details</h3>
+                            <button 
+                                onClick={() => setSelectedOrder(null)} 
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-border-custom text-text-muted hover:text-primary hover:border-primary transition-all shadow-sm"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
-                        <div className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="p-8 space-y-8">
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold text-text-muted">Order ID</p>
-                                    <p className="font-bold">{selectedOrder.orderId}</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-text-muted mb-1">Order ID</p>
+                                    <p className="font-bold text-primary">{selectedOrder.orderId}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold text-text-muted">Status</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-text-muted mb-1">Status</p>
                                     <span className={cn(
-                                        "px-2 py-0.5 rounded-full text-[10px] font-black uppercase border",
-                                        statusStyles[selectedOrder.status]
+                                        "px-3 py-1 rounded-full text-[10px] font-black uppercase border",
+                                        statusStyles[selectedOrder.status] || "bg-gray-50 text-gray-600"
                                     )}>{selectedOrder.status}</span>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold text-text-muted">Shop Name</p>
-                                    <p className="font-semibold">{selectedOrder.items?.[0]?.retailer?.businessDetails?.businessName || "N/A"}</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-text-muted mb-1">Shop Name</p>
+                                    <p className="font-bold">{selectedOrder.items?.[0]?.retailer?.businessDetails?.businessName || "N/A"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold text-text-muted">Customer</p>
-                                    <p className="font-semibold">{selectedOrder.user?.fullName || "Guest"}</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-text-muted mb-1">Customer</p>
+                                    <p className="font-bold">{selectedOrder.user?.fullName || selectedOrder.user?.name || "Guest"}</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-[10px] uppercase font-bold text-text-muted">Delivery Address</p>
-                                    <p className="text-xs text-text-muted">{selectedOrder.deliveryAddress?.address || "N/A"}</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-text-muted mb-1">Delivery Address</p>
+                                    <p className="text-sm font-medium text-text leading-relaxed">
+                                        {selectedOrder.deliveryAddress?.address || "No address provided"}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="border rounded-xl overflow-hidden text-xs">
-                                <div className="bg-background-soft p-3 font-bold border-b">Products</div>
-                                <div className="p-3 space-y-2">
+
+                            <div className="border border-border-custom rounded-2xl overflow-hidden shadow-sm">
+                                <div className="bg-background-soft/50 p-4 font-black uppercase tracking-widest text-[10px] border-b border-border-custom text-primary">
+                                    Order Items
+                                </div>
+                                <div className="p-4 space-y-3">
                                     {selectedOrder.items?.map((item: any, idx: number) => (
-                                        <div key={idx} className="flex justify-between">
-                                            <span>{item.quantity}x {item.product?.name}</span>
-                                            <span className="font-bold">₹{item.price * item.quantity}</span>
+                                        <div key={idx} className="flex justify-between items-center text-sm">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold">{item.product?.name}</span>
+                                                <span className="text-[10px] text-text-muted font-bold uppercase">{item.quantity} x ₹{item.price}</span>
+                                            </div>
+                                            <span className="font-black text-primary">₹{item.price * item.quantity}</span>
                                         </div>
                                     ))}
-                                    <div className="border-t pt-2 flex justify-between font-bold text-sm text-primary">
-                                        <span>Total</span>
-                                        <span>₹{selectedOrder.totalAmount}</span>
+                                    <div className="border-t border-border-custom pt-4 flex justify-between items-end">
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-text-muted">Total Amount</p>
+                                            <p className="text-xs text-text-muted italic">Incl. all taxes</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-2xl font-black text-primary italic tracking-tight">₹{selectedOrder.totalAmount}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

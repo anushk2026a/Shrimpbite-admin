@@ -157,7 +157,6 @@ export default function Dashboard() {
                             <div className={cn("p-3 rounded-xl transition-colors", stat.color)}>
                                 <stat.icon size={24} />
                             </div>
-                            <MoreVertical size={18} className="text-text-muted group-hover:text-foreground" />
                         </div>
                         <div>
                             <p className="text-sm font-medium text-text-muted mb-1">{stat.title}</p>
