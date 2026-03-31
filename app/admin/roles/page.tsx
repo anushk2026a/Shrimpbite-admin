@@ -89,8 +89,8 @@ export default function AdminRolesPage() {
     };
 
     const toggleModule = (module: string) => {
-        setSelectedModules(prev => 
-            prev.includes(module) 
+        setSelectedModules(prev =>
+            prev.includes(module)
                 ? prev.filter(m => m !== module)
                 : [...prev, module]
         );
@@ -104,13 +104,13 @@ export default function AdminRolesPage() {
                     <p className="text-text-muted">Command center for platform permissions and administrative hierarchy.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button 
+                    <button
                         onClick={() => setIsInviteOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-border-custom text-text-primary hover:bg-background-soft transition-all text-sm font-medium shadow-sm"
                     >
                         <Mail size={16} /> Invite Admin
                     </button>
-                    <button 
+                    <button
                         onClick={() => setIsCreateRoleOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all text-sm font-medium shadow-md shadow-primary/20"
                     >
@@ -138,97 +138,176 @@ export default function AdminRolesPage() {
                 ))}
             </div>
 
-            <div className="bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-                <div className="p-6 border-b border-border-custom flex items-center justify-between">
-                    <h3 className="text-lg font-bold">Role Hierarchy</h3>
-                    <div className="flex items-center gap-2">
-                        <button className="p-2 hover:bg-background-soft rounded-lg transition-colors">
-                            <MoreVertical size={18} className="text-text-muted" />
-                        </button>
+            <div className="grid grid-cols-1 gap-6">
+                {/* Role Hierarchy Table */}
+                <div className="bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+                    <div className="p-6 border-b border-border-custom flex items-center justify-between bg-primary/[0.02]">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary-light text-primary rounded-lg">
+                                <Shield size={20} />
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground">Role Hierarchy</h3>
+                        </div>
                     </div>
-                </div>
-                {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto flex-1">
-                        <table className="w-full text-left">
-                            <thead className="bg-primary/5 text-[10px] font-black text-primary uppercase tracking-widest">
-                                <tr>
-                                    <th className="px-6 py-4">Role Profile</th>
-                                    <th className="px-6 py-4">Security Level</th>
-                                    <th className="px-6 py-4">Active Capacity</th>
-                                    <th className="px-6 py-4">Last Modified</th>
-                                    <th className="px-6 py-4">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border-custom text-sm">
-                                {roles.map((role) => (
-                                    <tr key={role._id} className="hover:bg-background-soft/50 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-background-soft flex items-center justify-center text-text-muted group-hover:bg-primary-light group-hover:text-primary transition-all">
-                                                    <Shield size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-foreground capitalize">{role.name}</p>
-                                                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest truncate max-w-[150px]">
-                                                        {role.modules.length > 0 ? role.modules[0] : "None"}
-                                                        {role.modules.length > 1 && ` +${role.modules.length - 1} MORE`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="flex gap-0.5">
-                                                    {[...Array(3)].map((_, i) => (
-                                                        <div key={i} className={cn("w-1.5 h-3 rounded-sm", i < Math.min(Math.ceil(role.modules.length / 3) || 1, 3) ? "bg-primary" : "bg-slate-200")}></div>
-                                                    ))}
-                                                </div>
-                                                <span className="text-xs font-bold text-text-muted">Level {Math.ceil(role.modules.length / 3) || 1}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex -space-x-2">
-                                                {[...Array(Math.min(role.activeCapacity || 0, 3))].map((_, i) => (
-                                                    <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
-                                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=Admin${role._id}${i}`} alt="" />
-                                                    </div>
-                                                ))}
-                                                {(role.activeCapacity || 0) > 3 && (
-                                                    <div className="w-7 h-7 rounded-full border-2 border-white bg-primary-light flex items-center justify-center text-[10px] font-bold text-primary">
-                                                        +{(role.activeCapacity || 0) - 3}
-                                                    </div>
-                                                )}
-                                                {(role.activeCapacity || 0) === 0 && (
-                                                    <span className="text-xs text-text-muted font-medium ml-2">No users</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-text-muted">
-                                            {new Date(role.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={cn(
-                                                "px-3 py-1 rounded text-[10px] font-black uppercase border",
-                                                role.isActive ? "bg-primary-light text-primary border-primary/10" : "bg-red-50 text-red-500 border-red-100"
-                                            )}>
-                                                {role.isActive ? "Active" : "Inactive"}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {roles.length === 0 && (
+                    {loading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto flex-1">
+                            <table className="w-full text-left">
+                                <thead className="bg-primary/5 text-[10px] font-black text-primary uppercase tracking-widest">
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">No roles found</td>
+                                        <th className="px-6 py-4">Role Profile</th>
+                                        <th className="px-6 py-4">Security Level</th>
+                                        <th className="px-6 py-4">Active Capacity</th>
+                                        <th className="px-6 py-4">Last Modified</th>
+                                        <th className="px-6 py-4">Status</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-border-custom text-sm">
+                                    {roles.map((role) => (
+                                        <tr key={role._id} className="hover:bg-background-soft/50 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-background-soft flex items-center justify-center text-text-muted group-hover:bg-primary-light group-hover:text-primary transition-all font-bold">
+                                                        {role.name[0].toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-foreground capitalize">{role.name}</p>
+                                                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest truncate max-w-[150px]">
+                                                            {role.modules.length > 0 ? role.modules[0] : "None"}
+                                                            {role.modules.length > 1 && ` +${role.modules.length - 1} MORE`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="flex gap-0.5">
+                                                        {[...Array(3)].map((_, i) => (
+                                                            <div key={i} className={cn("w-1.5 h-3 rounded-sm", i < Math.min(Math.ceil(role.modules.length / 3) || 1, 3) ? "bg-primary" : "bg-slate-200")}></div>
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-xs font-bold text-text-muted">Level {Math.ceil(role.modules.length / 3) || 1}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex -space-x-2">
+                                                    {[...Array(Math.min(role.activeCapacity || 0, 3))].map((_, i) => (
+                                                        <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
+                                                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=Admin${role._id}${i}`} alt="" />
+                                                        </div>
+                                                    ))}
+                                                    {(role.activeCapacity || 0) > 3 && (
+                                                        <div className="w-7 h-7 rounded-full border-2 border-white bg-primary-light flex items-center justify-center text-[10px] font-bold text-primary">
+                                                            +{(role.activeCapacity || 0) - 3}
+                                                        </div>
+                                                    )}
+                                                    {(role.activeCapacity || 0) === 0 && (
+                                                        <span className="text-xs text-text-muted font-medium ml-2">No users</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-medium text-text-muted">
+                                                {new Date(role.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={cn(
+                                                    "px-3 py-1 rounded text-[10px] font-black uppercase border",
+                                                    role.isActive ? "bg-primary-light text-primary border-primary/10" : "bg-red-50 text-red-500 border-red-100"
+                                                )}>
+                                                    {role.isActive ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {roles.length === 0 && (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">No roles created yet</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
+                {/* Staff Members Table */}
+                <div className="bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+                    <div className="p-6 border-b border-border-custom flex items-center justify-between bg-primary/[0.02]">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                                <Users size={20} />
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground">Administrative Team</h3>
+                        </div>
+                        <span className="text-xs font-bold text-text-muted bg-background-soft px-3 py-1 rounded-full">{admins.length} Total Members</span>
                     </div>
-                )}
+                    {loading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto flex-1">
+                            <table className="w-full text-left">
+                                <thead className="bg-primary/5 text-[10px] font-black text-primary uppercase tracking-widest">
+                                    <tr>
+                                        <th className="px-6 py-4">Admin Profile</th>
+                                        <th className="px-6 py-4">Assigned Role</th>
+                                        <th className="px-6 py-4">Joined Date</th>
+                                        <th className="px-6 py-4">Account Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border-custom text-sm">
+                                    {admins.map((admin) => (
+                                        <tr key={admin._id} className="hover:bg-background-soft/50 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden bg-background-soft">
+                                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${admin.email}`} alt="" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-foreground capitalize">{admin.name}</p>
+                                                        <p className="text-xs text-text-muted font-medium">{admin.email}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Shield size={14} className="text-primary" />
+                                                    <span className="font-bold text-text-primary capitalize">{admin.adminRole?.name || "System Admin"}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-medium text-text-muted">
+                                                {new Date(admin.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={cn(
+                                                        "w-2 h-2 rounded-full",
+                                                        admin.isPasswordResetRequired ? "bg-amber-400 animate-pulse" : "bg-emerald-500"
+                                                    )} />
+                                                    <span className={cn(
+                                                        "text-xs font-bold",
+                                                        admin.isPasswordResetRequired ? "text-amber-600" : "text-emerald-600"
+                                                    )}>
+                                                        {admin.isPasswordResetRequired ? "Pending Invite" : "Active Member"}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {admins.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">No administrative staff found</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Create Role Modal */}

@@ -51,7 +51,7 @@ function AdminOrdersContent() {
 
     useEffect(() => {
         setMounted(true)
-        
+
         // Initial fetch
         fetchOrders(1, searchQuery, statusFilter, typeFilter)
 
@@ -78,7 +78,7 @@ function AdminOrdersContent() {
     // Trigger fetch on filter/page change with debounce for search
     useEffect(() => {
         if (!mounted) return;
-        
+
         const timeoutId = setTimeout(() => {
             fetchOrders(currentPage, searchQuery, statusFilter, typeFilter)
         }, 300);
@@ -131,8 +131,6 @@ function AdminOrdersContent() {
 
     const handleExport = () => {
         try {
-            // Note: Exporting only current view for now, usually admin expects ALL data
-            // To export ALL data, we might need a separate endpoint or fetch all without limit
             const exportData = ordersData.orders.map((o: any) => ({
                 "Order ID": o.orderId,
                 "Type": o.orderType,
@@ -168,9 +166,6 @@ function AdminOrdersContent() {
                     >
                         <Download size={16} />
                         Export All
-                    </button>
-                    <button className="p-2 rounded-lg border bg-white hover:bg-background-soft">
-                        <Filter size={18} />
                     </button>
                 </div>
             </div>
@@ -223,7 +218,7 @@ function AdminOrdersContent() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
                             <input
                                 type="text"
-                                placeholder="Search by ID, product, or shop..."
+                                placeholder="Search by Order Id"
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value)
@@ -321,7 +316,7 @@ function AdminOrdersContent() {
                                             </span>
                                         </td>
                                         <td className="px-1 py-4">
-                                            <button 
+                                            <button
                                                 onClick={() => setSelectedOrder(order)}
                                                 className="p-1 hover:bg-primary-light text-text-muted hover:text-primary rounded-md transition-all"
                                             >

@@ -105,9 +105,9 @@ export default function AdminPayoutsPage() {
                     <p className="text-text-muted mt-1">Review and approve retailer earnings disbursement.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border-custom rounded-xl font-bold text-sm hover:bg-gray-50 transition-all">
+                    {/* <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border-custom rounded-xl font-bold text-sm hover:bg-gray-50 transition-all">
                         <Download size={18} /> Export List
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
