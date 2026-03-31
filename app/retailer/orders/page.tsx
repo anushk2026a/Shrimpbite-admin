@@ -226,21 +226,24 @@ function OrdersContent() {
     const oneTimeCount = ordersData.orders.filter((o: any) => o.orderType !== "Subscription").length
 
     const handleStatusUpdate = async (orderId: string, nextStatus: string) => {
-        // Confirmation dialog
-        const confirmed = window.confirm(`Are you sure you want to mark this order as "${nextStatus}"?`)
-        if (!confirmed) return
-
-        try {
-            const res = await retailerService.updateOrderStatus(orderId, nextStatus)
-            if (res.success) {
-                toast.success(`Order marked as ${nextStatus}`)
-                fetchOrders()
-            } else {
-                toast.error(res.message || "Failed to update status")
+        toast(`Mark order as "${nextStatus}"?`, {
+            action: {
+                label: "Confirm",
+                onClick: async () => {
+                    try {
+                        const res = await retailerService.updateOrderStatus(orderId, nextStatus)
+                        if (res.success) {
+                            toast.success(`Order marked as ${nextStatus}`)
+                            fetchOrders()
+                        } else {
+                            toast.error(res.message || "Failed to update status")
+                        }
+                    } catch (error: any) {
+                        toast.error(error?.response?.data?.message || "Failed to update status")
+                    }
+                }
             }
-        } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Failed to update status")
-        }
+        })
     }
 
     const handleAssignRider = async (orderId: string, riderId: string) => {

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, User, UserCheck, UserX, Clock, X, CheckSquare, AlertCircle, Building, FileText } from "lucide-react"
+import { Search, User, UserCheck, UserX, Clock, X, Building, FileText, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import adminService from "@/data/services/adminService"
 
 interface Retailer {
@@ -41,12 +42,6 @@ export default function RetailersPage() {
     const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(null)
     const [rejectionReason, setRejectionReason] = useState("")
     const [actionLoading, setActionLoading] = useState(false)
-    const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null)
-
-    const showToast = (message: string, type: "error" | "success" = "error") => {
-        setToast({ message, type })
-        setTimeout(() => setToast(null), 3000)
-    }
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
@@ -79,14 +74,14 @@ export default function RetailersPage() {
 
     const handleUpdateStatus = async (userId: string, status: string) => {
         if (status === "rejected" && !rejectionReason) {
-            showToast("Rejection reason is mandatory")
+            toast.error("Rejection reason is mandatory")
             return
         }
 
         setActionLoading(true)
         try {
             await adminService.updateRetailerStatus(userId, status, rejectionReason)
-            showToast(`Retailer ${status} successfully`, "success")
+            toast.success(`Retailer ${status} successfully`)
             setTimeout(() => {
                 setSelectedRetailer(null)
                 setRejectionReason("")
@@ -97,7 +92,7 @@ export default function RetailersPage() {
             const msg = error && typeof error === 'object' && 'response' in error
                 ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
                 : undefined
-            showToast(msg || "Action failed")
+            toast.error(msg || "Action failed")
         } finally {
             setActionLoading(false)
         }
@@ -155,7 +150,6 @@ export default function RetailersPage() {
                                 <tr className="bg-primary/5 text-xs font-bold text-primary uppercase tracking-wider border-b border-border-custom">
                                     <th className="px-6 py-4">Business</th>
                                     <th className="px-6 py-4">Owner</th>
-                                    <th className="px-6 py-4">Type</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4 text-center">Action</th>
                                 </tr>
@@ -175,11 +169,7 @@ export default function RetailersPage() {
                                                 <span className="text-xs text-text-muted">{ret.email}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="px-3 py-1 rounded-lg bg-background-soft text-text-muted font-medium border border-border-custom text-xs">
-                                                {ret.businessDetails?.businessType}
-                                            </span>
-                                        </td>
+
                                         <td className="px-6 py-4">
                                             <span className={cn(
                                                 "px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest",
@@ -204,7 +194,7 @@ export default function RetailersPage() {
                                     </tr>
                                 ))}
                                 {filteredRetailers.length === 0 && (
-                                    <tr><td colSpan={5} className="p-12 text-center text-text-muted">No retailers found</td></tr>
+                                    <tr><td colSpan={4} className="p-12 text-center text-text-muted">No retailers found</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -264,16 +254,7 @@ export default function RetailersPage() {
                                 <X size={24} />
                             </button>
 
-                            {/* Toast Notification */}
-                            {toast && (
-                                <div className={cn(
-                                    "absolute top-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl shadow-2xl border animate-in slide-in-from-top-4 duration-300 flex items-center gap-2 z-50",
-                                    toast.type === "error" ? "bg-red-50 border-red-100 text-red-600" : "bg-green-50 border-green-100 text-green-600"
-                                )}>
-                                    {toast.type === "error" ? <AlertCircle size={18} /> : <CheckSquare size={18} />}
-                                    <span className="text-sm font-bold uppercase tracking-wider">{toast.message}</span>
-                                </div>
-                            )}
+
                         </div>
 
                         <div className="p-8 grid md:grid-cols-2 gap-12">
@@ -292,10 +273,6 @@ export default function RetailersPage() {
                                         <div>
                                             <p className="text-xs text-gray-400 font-bold">BUSINESS NAME</p>
                                             <p className="font-bold text-lg">{selectedRetailer.businessDetails?.businessName}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400 font-bold">STORE TYPE</p>
-                                            <p className="font-medium">{selectedRetailer.businessDetails?.businessType}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-400 font-bold">ADDRESS</p>

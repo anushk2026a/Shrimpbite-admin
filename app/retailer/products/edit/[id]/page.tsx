@@ -13,6 +13,7 @@ import {
     Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 import { useRouter, useParams } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
@@ -84,7 +85,7 @@ export default function EditProductPage() {
             })
         } catch (error) {
             console.error("Error fetching product:", error)
-            alert("Failed to load product data")
+            toast.error("Failed to load product data")
             router.push("/retailer/products")
         } finally {
             setLoading(false)
@@ -115,7 +116,7 @@ export default function EditProductPage() {
             }))
         } catch (error) {
             console.error("Upload failed:", error)
-            alert("Image upload failed")
+            toast.error("Image upload failed")
         } finally {
             setUploading(false)
             setTempImage(null)
@@ -131,7 +132,7 @@ export default function EditProductPage() {
 
     const handleUpdate = async () => {
         if (!formData.name || !formData.price) {
-            alert("Please fill in the required fields (Name, Price)")
+            toast.error("Please fill in the required fields (Name, Price)")
             return
         }
 
@@ -141,7 +142,7 @@ export default function EditProductPage() {
             router.push("/retailer/products")
         } catch (error) {
             console.error("Failed to update catch:", error)
-            alert("Failed to update product")
+            toast.error("Failed to update product")
         } finally {
             setPublishing(false)
         }

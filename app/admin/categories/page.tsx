@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Clock, Plus, Edit2, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import adminService from "@/data/services/adminService"
 
 interface Category {
@@ -69,7 +70,7 @@ export default function CategoriesPage() {
             setCategoryImage(response.url)
         } catch (error) {
             console.error("Upload failed:", error)
-            alert("Image upload failed. Please try again.")
+            toast.error("Image upload failed. Please try again.")
         } finally {
             setUploadLoading(false)
         }
@@ -88,29 +89,37 @@ export default function CategoriesPage() {
             }
             setIsModalOpen(false)
             fetchCategories(currentPage)
+            toast.success(editingCategory ? "Category updated!" : "Category created!")
         } catch (error: unknown) {
             console.error(error)
             const msg = error && typeof error === 'object' && 'response' in error
                 ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
                 : undefined
-            alert(msg || "Action failed")
+            toast.error(msg || "Action failed")
         } finally {
             setActionLoading(false)
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm("Are you sure you want to delete this category?")) return
-
-        try {
-            await adminService.deleteCategory(id)
-            fetchCategories(currentPage)
-        } catch (error: unknown) {
-            const msg = error && typeof error === 'object' && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-                : undefined
-            alert(msg || "Delete failed")
-        }
+        toast.warning("Delete this category?", {
+            description: "This action cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    try {
+                        await adminService.deleteCategory(id)
+                        fetchCategories(currentPage)
+                        toast.success("Category deleted successfully")
+                    } catch (error: unknown) {
+                        const msg = error && typeof error === 'object' && 'response' in error
+                            ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+                            : undefined
+                        toast.error(msg || "Delete failed")
+                    }
+                }
+            }
+        })
     }
 
     return (

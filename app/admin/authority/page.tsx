@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Shield, ShieldCheck, Edit2, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import roleService from "@/data/services/roleService";
 
 export default function AuthorityPage() {
@@ -62,21 +63,22 @@ export default function AuthorityPage() {
         e.preventDefault();
         try {
             await roleService.updateRole(editingRole._id, { modules: selectedModules });
-            alert("Role updated successfully!");
+            toast.success("Role updated successfully!");
             setIsEditOpen(false);
             setEditingRole(null);
             loadRoles();
         } catch (err: any) {
-            alert(err.response?.data?.message || "Failed to update role");
+            toast.error(err.response?.data?.message || "Failed to update role");
         }
     };
 
     const toggleRoleStatus = async (roleId: string, currentStatus: boolean) => {
         try {
             await roleService.updateRole(roleId, { isActive: !currentStatus });
+            toast.success(`Role ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
             loadRoles();
         } catch (err: any) {
-            alert("Failed to toggle status");
+            toast.error("Failed to toggle status");
         }
     };
 

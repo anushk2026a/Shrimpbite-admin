@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Store, MapPin, Upload, Save, Loader2, X, Phone, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import retailerService from "@/data/services/retailerService"
 import useAuthStore from "@/data/store/useAuthStore"
 
@@ -14,7 +15,6 @@ export default function StoreSettingsPage() {
     const [formData, setFormData] = useState({
         businessName: "",
         storeDisplayName: "",
-        businessType: "",
         ownerName: "",
         email: "",
         whatsappNumber: "",
@@ -35,7 +35,6 @@ export default function StoreSettingsPage() {
                 setFormData({
                     businessName: data.businessDetails?.businessName || "",
                     storeDisplayName: data.businessDetails?.storeDisplayName || "",
-                    businessType: data.businessDetails?.businessType || "",
                     ownerName: data.businessDetails?.ownerName || data.name || "",
                     email: data.email || "",
                     whatsappNumber: data.whatsappNumber || "",
@@ -80,16 +79,15 @@ export default function StoreSettingsPage() {
                 businessDetails: {
                     businessName: formData.businessName,
                     storeDisplayName: formData.storeDisplayName,
-                    businessType: formData.businessType,
                     storeImage: formData.storeImage,
                     location: formData.location
                 },
                 whatsappNumber: formData.whatsappNumber
             })
-            alert("Settings saved successfully!")
+            toast.success("Settings saved successfully!")
         } catch (error) {
             console.error("Save failed:", error)
-            alert("Failed to save settings.")
+            toast.error("Failed to save settings. Please check your connection.")
         } finally {
             setSaving(false)
         }

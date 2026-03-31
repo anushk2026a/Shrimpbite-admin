@@ -13,6 +13,7 @@ import {
     Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 import { useRouter } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
@@ -86,7 +87,7 @@ export default function AddProductPage() {
             }))
         } catch (error) {
             console.error("Upload failed:", error)
-            alert("Image upload failed")
+            toast.error("Image upload failed")
         } finally {
             setUploading(false)
             setTempImage(null)
@@ -102,7 +103,7 @@ export default function AddProductPage() {
 
     const handlePublish = async () => {
         if (!formData.name || !formData.price) {
-            alert("Please fill in the required fields (Name, Price)")
+            toast.error("Please fill in the required fields (Name, Price)")
             return
         }
 
@@ -112,7 +113,7 @@ export default function AddProductPage() {
             router.push("/retailer/products")
         } catch (error) {
             console.error("Failed to publish catch:", error)
-            alert("Failed to publish product")
+            toast.error("Failed to publish product")
         } finally {
             setPublishing(false)
         }
