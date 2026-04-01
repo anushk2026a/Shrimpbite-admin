@@ -23,12 +23,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function DailyPrepListPage() {
     const queryClient = useQueryClient()
+    const [selectedDate, setSelectedDate] = useState(new Date())
 
     // Using React Query for prep list fetching & caching
     const { data: prepItems = [], isLoading } = useQuery<PrepItem[]>({
-        queryKey: ["retailerPrepList"],
+        queryKey: ["retailerPrepList", selectedDate.toDateString()],
         queryFn: async () => {
-            const response = await retailerService.getPrepList()
+            const response = await retailerService.getPrepList(selectedDate.toISOString())
             return response.data || []
         },
         staleTime: 2 * 60 * 1000, // Refresh every 2 minutes or on socket events
@@ -59,26 +60,81 @@ export default function DailyPrepListPage() {
     const totalOrders = prepItems.reduce((sum, item) => sum + item.orderCount, 0)
     const readyOrders = prepItems.reduce((sum, item) => sum + item.processedCount, 0)
 
+    const isToday = selectedDate.toDateString() === new Date().toDateString();
+    const isFuture = selectedDate > new Date();
+
+    const dateOptions = [
+        { label: "Today", date: new Date() },
+        { label: "Tomorrow", date: new Date(new Date().setDate(new Date().getDate() + 1)) },
+        { label: "Day After", date: new Date(new Date().setDate(new Date().getDate() + 2)) },
+    ];
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-primary">Daily Prep List</h1>
-                    <p className="text-text-muted mt-1">Inventory requirements for today&apos;s subscription &amp; pre-orders.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-primary">
+                        {isToday ? "Daily Prep List" : isFuture ? "Future Prep Prediction" : "Historical Prep List"}
+                    </h1>
+                    <p className="text-text-muted mt-1">
+                        {isFuture 
+                            ? `Predicted inventory for ${selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}`
+                            : "Inventory requirements for today's subscription & pre-orders."
+                        }
+                    </p>
                 </div>
-
+                
+                {/* Date Selection Chips */}
+                <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-border-custom shadow-sm">
+                    {dateOptions.map((opt) => (
+                        <button
+                            key={opt.label}
+                            onClick={() => setSelectedDate(opt.date)}
+                            className={cn(
+                                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                                selectedDate.toDateString() === opt.date.toDateString()
+                                    ? "bg-primary text-white shadow-md shadow-primary/20"
+                                    : "text-text-muted hover:bg-background-soft"
+                            )}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                    <div className="w-[1px] h-6 bg-border-custom mx-1" />
+                    <input 
+                        type="date" 
+                        value={selectedDate.toISOString().split('T')[0]}
+                        onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                        className="text-xs font-bold text-primary bg-transparent outline-none cursor-pointer px-2"
+                    />
+                </div>
             </div>
 
             {/* Date Info */}
-            <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-black">
-                    {new Date().getDate()}
+            <div className={cn(
+                "border rounded-[32px] p-6 flex items-center gap-4 transition-colors",
+                isToday ? "bg-primary/5 border-primary/10" : "bg-green-50/50 border-green-100"
+            )}>
+                <div className={cn(
+                    "w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black",
+                    isToday ? "bg-primary" : "bg-green-600"
+                )}>
+                    {selectedDate.getDate()}
                 </div>
                 <div>
-                    <p className="font-black text-primary uppercase tracking-tight">Orders for {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                    <p className="text-xs text-text-muted font-bold uppercase tracking-widest">Cut-off completed at 11:00 PM last night</p>
+                    <p className={cn(
+                        "font-black uppercase tracking-tight",
+                        isToday ? "text-primary" : "text-green-700"
+                    )}>
+                        Orders for {selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
+                    <p className="text-xs text-text-muted font-bold uppercase tracking-widest">
+                        {isFuture 
+                            ? "Predictive analysis based on active subscriptions" 
+                            : "Cut-off completed at 8:00 PM last night"
+                        }
+                    </p>
                 </div>
             </div>
 

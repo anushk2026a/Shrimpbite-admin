@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, ShieldCheck, Edit2, X, Check } from "lucide-react";
+import { Shield, ShieldCheck, Edit2, X, Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import roleService from "@/data/services/roleService";
@@ -14,6 +14,7 @@ export default function AuthorityPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<any>(null);
     const [selectedModules, setSelectedModules] = useState<string[]>([]);
+    const [showSecurityWarning, setShowSecurityWarning] = useState(false);
     
     // Bulk Update Mode (UI only for now, can implement later)
     const [isBulkUpdateMode, setIsBulkUpdateMode] = useState(false);
@@ -55,11 +56,25 @@ export default function AuthorityPage() {
 
     const handleUpdateRole = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Prevent warning if they already have the permissions and are just editing something else
+        const originallyHadSensitive = editingRole?.modules?.includes("Admin role") || editingRole?.modules?.includes("Control Authority");
+        const hasSensitive = selectedModules.includes("Admin role") || selectedModules.includes("Control Authority");
+        
+        if (hasSensitive && !originallyHadSensitive) {
+            setShowSecurityWarning(true);
+        } else {
+            executeUpdateRole();
+        }
+    };
+
+    const executeUpdateRole = async () => {
         try {
             await roleService.updateRole(editingRole._id, { modules: selectedModules });
             toast.success("Role updated successfully!");
             queryClient.invalidateQueries({ queryKey: ["adminRoles"] });
             setIsEditOpen(false);
+            setShowSecurityWarning(false);
             setEditingRole(null);
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to update role");
@@ -215,6 +230,31 @@ export default function AuthorityPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            
+            {/* Security Warning Modal */}
+            {showSecurityWarning && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowSecurityWarning(false)}></div>
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 pb-0 flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                                <AlertTriangle size={32} />
+                            </div>
+                            <h3 className="text-xl font-black text-gray-900 mb-2">High Security Alert</h3>
+                            <p className="text-sm text-gray-600 font-medium">
+                                You are checking <strong>Admin role</strong> or <strong>Control Authority</strong> permissions for this role. 
+                            </p>
+                            <p className="text-sm text-gray-600 font-medium mt-2">
+                                Users assigned to this role will gain the power to create, edit, or manage other Admins' access levels. Are you absolutely sure?
+                            </p>
+                        </div>
+                        <div className="p-6 flex gap-3 mt-4">
+                            <button onClick={() => setShowSecurityWarning(false)} className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors">Cancel</button>
+                            <button onClick={executeUpdateRole} className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-md shadow-red-500/20">Yes, Update Access</button>
+                        </div>
                     </div>
                 </div>
             )}

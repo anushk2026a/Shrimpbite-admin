@@ -60,7 +60,7 @@ export default function Topbar() {
 
         // Socket logic for notifications
         socket.connect()
-        const room = `retailer_notifications_${user._id}`
+        const room = `notifications_${user._id}`
         socket.emit("join", room)
 
         socket.on("notification", (newNotif: any) => {
@@ -72,7 +72,13 @@ export default function Topbar() {
             })
         })
 
-        // Click outside to close dropdowns
+        return () => {
+            socket.off("notification")
+        }
+    }, [user?._id])
+
+    // Click outside to close dropdowns
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowDropdown(false)
@@ -82,12 +88,8 @@ export default function Topbar() {
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
-
-        return () => {
-            socket.off("notification")
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-    }, [user?._id])
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
 
     // Search Logic
     useEffect(() => {
@@ -282,17 +284,28 @@ export default function Topbar() {
 
         const title = n.title.toLowerCase()
         const message = n.message.toLowerCase()
+        const isAdmin = user?.role === "admin" || localStorage.getItem("role") === "admin"
 
-        if (title.includes("new order") || message.includes("new order")) {
-            router.push("/retailer/orders?filter=Pending")
+        // Handle specific Admin Notifications
+        if (title.includes("payout")) {
+             router.push(isAdmin ? "/admin/payouts" : "/retailer/revenue")
+        } else if (title.includes("onboarding") || message.includes("review")) {
+            if (isAdmin) router.push("/admin/retailers")
+        } else if (title.includes("team member") || title.includes("invited")) {
+            if (isAdmin) router.push("/admin/roles")
+        // Handle common generic notifications
+        } else if (title.includes("new order") || message.includes("new order")) {
+            router.push(isAdmin ? "/admin/orders" : "/retailer/orders?filter=Pending")
         } else if (title.includes("delivered") || title.includes("completed") || message.includes("delivered") || message.includes("completed")) {
-            router.push("/retailer/orders?filter=Completed")
+            router.push(isAdmin ? "/admin/orders" : "/retailer/orders?filter=Completed")
         } else if (n.type === "Inventory" || title.includes("inventory")) {
-            router.push("/retailer/products")
+            router.push(isAdmin ? "/admin/products" : "/retailer/products")
         } else {
             // Default: just stay on current page or go to dashboard
-            if (window.location.pathname !== "/retailer/dashboard" && !window.location.pathname.includes("/retailer/orders")) {
-                router.push("/retailer/dashboard")
+            const defaultPath = isAdmin ? "/admin/dashboard" : "/retailer/dashboard"
+            const currentPath = window.location.pathname
+            if (currentPath !== defaultPath && !currentPath.includes("/orders")) {
+                router.push(defaultPath)
             }
         }
 
@@ -493,7 +506,10 @@ export default function Topbar() {
             <div className="flex items-center gap-4">
                 <div className="relative" ref={dropdownRef}>
                     <button
-                        onClick={() => setShowDropdown(!showDropdown)}
+                        onClick={() => {
+                            setShowDropdown(!showDropdown)
+                            setShowSearchDropdown(false)
+                        }}
                         className={cn(
                             "p-2 rounded-full transition-all relative",
                             showDropdown ? "bg-primary/10 text-primary" : "hover:bg-background-soft text-text-muted"
