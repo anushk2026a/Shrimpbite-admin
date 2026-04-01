@@ -103,7 +103,8 @@ export default function Dashboard() {
             change: "",
             trend: "up",
             icon: ShoppingCart,
-            color: "bg-primary-light text-primary",
+            color: "bg-orange-50 text-orange-600 border-orange-100",
+            shadow: "shadow-orange-500/10",
             href: "/admin/orders"
         },
         {
@@ -112,7 +113,8 @@ export default function Dashboard() {
             change: "",
             trend: "up",
             icon: Package,
-            color: "bg-blue-50 text-blue-600",
+            color: "bg-red-50 text-red-600 border-red-100",
+            shadow: "shadow-red-500/10",
             href: "/admin/orders"
         },
         {
@@ -121,7 +123,8 @@ export default function Dashboard() {
             change: "",
             trend: "up",
             icon: ShieldCheckIcon,
-            color: "bg-green-50 text-green-600",
+            color: "bg-green-50 text-green-600 border-green-100",
+            shadow: "shadow-green-500/10",
             href: "/admin/orders"
         },
         {
@@ -130,45 +133,50 @@ export default function Dashboard() {
             change: "",
             trend: "down",
             icon: TrashIcon,
-            color: "bg-red-50 text-red-600",
+            color: "bg-purple-50 text-purple-600 border-purple-100",
+            shadow: "shadow-purple-500/10",
             href: "/admin/orders"
         }
     ]
 
     return (
-        <div className="space-y-6 text-foreground">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
-                    <p className="text-text-muted">Welcome back, Admin. Here&apos;s a summary of all shop activities.</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Branded Admin Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-10 rounded-[48px] border-2 border-border-custom shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#FF6B35] via-[#FF3B30] to-[#6CC51D] opacity-80" />
+                <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FF6B35]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#FF6B35]/10 transition-colors duration-700" />
+                
+                <div className="relative z-10 flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-xl shadow-green-500/20 group-hover:scale-110 transition-transform duration-500">
+                        <TrendingUp size={32} />
+                    </div>
+                    <div>
+                        <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Platform Overview</h1>
+                        <p className="text-text-muted mt-1 font-bold text-sm tracking-tight opacity-70">Welcome back, Admin. Monitoring all live metrics.</p>
+                    </div>
                 </div>
-
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {staticCards.map((stat, index) => (
-                    <Link key={index} href={stat.href} className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm hover:shadow-md transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={cn("p-3 rounded-xl transition-colors", stat.color)}>
-                                <stat.icon size={24} />
+                    <Link key={index} href={stat.href} className={cn(
+                        "bg-white p-7 rounded-[32px] border-2 border-transparent hover:border-gray-100 transition-all group text-foreground relative overflow-hidden",
+                        stat.shadow
+                    )}>
+                        {/* Subtle inner corner accent */}
+                        <div className={cn("absolute top-0 right-0 w-16 h-16 opacity-5 -mr-4 -mt-4 rounded-full", stat.color)} />
+                        
+                        <div className="flex items-center justify-between mb-6 relative">
+                            <div className={cn("p-4 rounded-2xl border transition-transform duration-500 group-hover:rotate-[10deg]", stat.color)}>
+                                <stat.icon size={28} />
                             </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-text-muted mb-1">{stat.title}</p>
-                            <div className="flex items-end gap-2">
-                                <h3 className="text-2xl font-bold">{stat.value}</h3>
-                                {stat.change && (
-                                    <span className={cn(
-                                        "text-xs font-bold flex items-center mb-1",
-                                        stat.trend === "up" ? "text-primary" : "text-red-500"
-                                    )}>
-                                        {stat.change}
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-text-muted mt-2">Global activity</p>
+                        <p className="text-xs font-black text-text-muted mb-2 uppercase tracking-widest opacity-60">{stat.title}</p>
+                        <div className="flex items-center gap-3 relative">
+                            <h3 className="text-3xl font-black tracking-tight">{stat.value}</h3>
                         </div>
+                        <p className="text-[10px] font-bold text-text-muted mt-3 uppercase tracking-widest opacity-40">System-wide Total</p>
                     </Link>
                 ))}
             </div>

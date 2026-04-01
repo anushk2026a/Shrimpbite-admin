@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Wallet, ArrowUpRight, Clock, CheckCircle2, DollarSign, Download, Filter, Plus, X, Building2 } from "lucide-react"
+import { Wallet, ArrowUpRight, Clock, CheckCircle2, DollarSign, Download, Filter, Plus, X, Building2, Info, ChevronDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
@@ -240,41 +240,87 @@ export default function RetailerRevenuePage() {
 
             {/* Payout Request Modal */}
             {showPayoutModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <form
                         onSubmit={handleRequestPayout}
-                        className="bg-white rounded-[40px] w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
+                        className="bg-white rounded-[48px] w-full max-w-xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(255,107,53,0.3)] animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 relative"
                     >
-                        <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                            <h2 className="text-2xl font-black text-primary uppercase tracking-tight">Request Payout</h2>
-                            <button type="button" onClick={() => setShowPayoutModal(false)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors">
-                                <X size={24} className="text-text-muted" />
+                        {/* Branded Header Gradient */}
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FF6B35] via-[#FF3B30] to-[#6CC51D] z-10" />
+                        
+                        {/* Background Logo Watermark */}
+                        <div className="absolute -right-20 -top-20 opacity-[0.03] rotate-12 pointer-events-none">
+                            <Wallet size={300} className="text-[#FF6B35]" />
+                        </div>
+
+                        <div className="p-8 border-b border-background-soft flex items-center justify-between relative bg-white">
+                            <div>
+                                <h2 className="text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#FF3B30] flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                                        <DollarSign size={18} />
+                                    </div>
+                                    Request Payout
+                                </h2>
+                                <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1 ml-10">Instant settlement to your bank</p>
+                            </div>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowPayoutModal(false)} 
+                                className="w-12 h-12 flex items-center justify-center hover:bg-red-50 hover:text-red-500 rounded-full transition-all group"
+                            >
+                                <X size={24} className="text-text-muted group-hover:rotate-90 transition-transform duration-300" />
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Payout Amount (₹)</label>
-                                <input
-                                    type="number"
-                                    required
-                                    min="500"
-                                    max={revenueStats.availableBalance}
-                                    placeholder="Enter amount to withdraw..."
-                                    value={payoutAmount}
-                                    onChange={e => setPayoutAmount(e.target.value)}
-                                    className="w-full px-6 py-4 rounded-2xl bg-background-soft border-2 border-transparent focus:border-primary/20 outline-none transition-all font-black text-2xl text-primary"
-                                />
-                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-1">Available: ₹{revenueStats.availableBalance.toLocaleString()}</p>
+                        <div className="p-8 space-y-8 relative bg-white">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    Payout Amount (₹)
+                                    <Info size={12} className="text-primary/40" />
+                                </label>
+                                <div className="relative group">
+                                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-black text-primary/20 group-focus-within:text-[#FF6B35] transition-colors">₹</div>
+                                    <input
+                                        type="number"
+                                        required
+                                        min="500"
+                                        max={revenueStats.availableBalance}
+                                        placeholder="0.00"
+                                        value={payoutAmount}
+                                        onChange={e => setPayoutAmount(e.target.value)}
+                                        className="w-full pl-14 pr-6 py-6 rounded-[32px] bg-background-soft border-4 border-transparent focus:border-[#FF6B35]/10 focus:bg-white outline-none transition-all font-black text-4xl text-primary placeholder:text-primary/5 shadow-inner"
+                                    />
+                                    {/* Quick Tabs */}
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setPayoutAmount(revenueStats.availableBalance.toString())}
+                                            className="px-3 py-1.5 rounded-xl bg-white border border-border-custom text-[10px] font-black text-primary hover:border-[#FF6B35] transition-all"
+                                        >
+                                            MAX
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between px-2">
+                                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
+                                        Available: <span className="text-primary font-black">₹{revenueStats.availableBalance.toLocaleString()}</span>
+                                    </p>
+                                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">Min. Withdrawal: ₹500</p>
+                                </div>
                             </div>
 
-                            <div className="bg-gray-50 rounded-[32px] p-6 space-y-4">
-                                <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50 mb-2">Settlement Destination</h3>
+                            <div className="bg-background-soft rounded-[40px] p-8 space-y-6 border border-border-custom/50">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50">Settlement Destination</h3>
+                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                                        <Building2 size={14} className="text-[#FF6B35]" />
+                                    </div>
+                                </div>
                                 
                                 {loadingBanks ? (
-                                    <div className="h-12 w-full bg-gray-200 animate-pulse rounded-2xl"></div>
+                                    <div className="h-14 w-full bg-white animate-pulse rounded-2xl border-2 border-dashed border-gray-200"></div>
                                 ) : bankAccounts.length === 0 ? (
-                                    <div className="text-sm font-medium text-gray-500 border border-gray-200 rounded-2xl p-4 text-center">
+                                    <div className="text-sm font-medium text-gray-500 border border-gray-200 rounded-2xl p-4 text-center bg-white">
                                         No bank accounts found.{' '}
                                         <button 
                                             type="button" 
@@ -282,36 +328,61 @@ export default function RetailerRevenuePage() {
                                                 setShowPayoutModal(false);
                                                 router.push('/retailer/revenue/bankdetails');
                                             }}
-                                            className="text-primary font-bold hover:underline"
+                                            className="text-[#FF6B35] font-bold hover:underline"
                                         >
                                             Add one now
                                         </button>
                                     </div>
                                 ) : (
-                                    <select
-                                        required
-                                        value={selectedBankId}
-                                        onChange={e => setSelectedBankId(e.target.value)}
-                                        className="w-full bg-white border-2 border-primary/10 focus:border-primary outline-none py-3 px-4 rounded-xl font-bold text-sm transition-all text-primary shadow-sm"
-                                    >
-                                        <option value="" disabled>Select a saved bank account...</option>
-                                        {bankAccounts.map((bank: any) => (
-                                            <option key={bank._id} value={bank._id}>
-                                                {bank.bankName} - A/C ending in {bank.accountNumber?.slice(-4) || ''}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative group">
+                                        <select
+                                            required
+                                            value={selectedBankId}
+                                            onChange={e => setSelectedBankId(e.target.value)}
+                                            className="w-full bg-white border-2 border-transparent group-hover:border-[#FF6B35]/20 focus:border-[#FF6B35] focus:ring-4 focus:ring-orange-500/5 outline-none py-4 px-6 rounded-2xl font-black text-sm transition-all text-primary shadow-sm appearance-none"
+                                        >
+                                            <option value="" disabled>Select a saved bank account...</option>
+                                            {bankAccounts.map((bank: any) => (
+                                                <option key={bank._id} value={bank._id}>
+                                                    {bank.bankName} - A/C ending in {bank.accountNumber?.slice(-4) || ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                            <ChevronDown size={18} />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="p-8 pt-0">
+                        <div className="p-8 pt-0 bg-white">
                             <button
-                                disabled={submitting}
-                                className="w-full py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                type="submit"
+                                disabled={submitting || Number(payoutAmount) < 500}
+                                className={cn(
+                                    "w-full py-6 rounded-[32px] font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl flex items-center justify-center gap-4 group",
+                                    submitting || Number(payoutAmount) < 500 
+                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none" 
+                                        : "bg-gradient-to-r from-[#FF6B35] to-[#FF3B30] text-white shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] hover:shadow-orange-500/60"
+                                )}
                             >
-                                {submitting ? "Processing Request..." : "Submit Payout Request"}
+                                {submitting ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Processing Request...
+                                    </>
+                                ) : (
+                                    <>
+                                        Submit Payout Request
+                                        <ArrowUpRight size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                    </>
+                                )}
                             </button>
+                            <p className="text-[9px] text-center text-text-muted mt-6 font-bold uppercase tracking-widest leading-relaxed">
+                                Funds will be settled within 24-48 business hours<br/>
+                                subject to bank clearances.
+                            </p>
                         </div>
                     </form>
                 </div>
