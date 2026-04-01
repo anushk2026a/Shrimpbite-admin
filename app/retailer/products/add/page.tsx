@@ -10,7 +10,8 @@ import {
     ChevronDown,
     Info,
     Edit2,
-    Loader2
+    Loader2,
+    AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -18,6 +19,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
 import ImageCropper from "@/components/shared/ImageCropper"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface Category {
     _id: string;
@@ -26,9 +28,9 @@ interface Category {
 
 export default function AddProductPage() {
     const router = useRouter()
+    const queryClient = useQueryClient()
     const [selectedColors, setSelectedColors] = useState<string[]>(["#AEDC81"])
     const [categories, setCategories] = useState<Category[]>([])
-    const [selectedCategory, setSelectedCategory] = useState("")
     const [loading, setLoading] = useState(false)
     const [publishing, setPublishing] = useState(false)
     const [uploading, setUploading] = useState(false)
@@ -36,6 +38,8 @@ export default function AddProductPage() {
     // Cropping State
     const [showCropper, setShowCropper] = useState(false)
     const [tempImage, setTempImage] = useState<string | null>(null)
+
+    const [errors, setErrors] = useState<Record<string, string>>({})
 
     // Form State
     const [formData, setFormData] = useState({
@@ -101,15 +105,32 @@ export default function AddProductPage() {
         }))
     }
 
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {}
+        if (!formData.name) newErrors.name = "Product name is required"
+        if (!formData.description) newErrors.description = "Description is required"
+        if (!formData.price || Number(formData.price) <= 0) newErrors.price = "Valid price is required"
+        // if (!formData.category) newErrors.category = "Category is required"
+        if (formData.images.length === 0) newErrors.images = "At least one image is required"
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
     const handlePublish = async () => {
-        if (!formData.name || !formData.price) {
-            toast.error("Please fill in the required fields (Name, Price)")
+        if (!validateForm()) {
+            toast.error("Please fill in all mandatory fields", {
+                description: "Check the highlighted fields below."
+            })
             return
         }
 
         setPublishing(true)
         try {
             await retailerService.createProduct(formData)
+            // Invalidate the cache INSTANTLY before redirecting
+            await queryClient.invalidateQueries({ queryKey: ["retailerProducts"] })
+            toast.success("Product published successfully!")
             router.push("/retailer/products")
         } catch (error) {
             console.error("Failed to publish catch:", error)
@@ -164,10 +185,17 @@ export default function AddProductPage() {
                                 <input
                                     type="text"
                                     value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    onChange={e => {
+                                        setFormData({ ...formData, name: e.target.value });
+                                        if (errors.name) setErrors({ ...errors, name: "" });
+                                    }}
                                     placeholder="e.g. Premium Tiger Shrimp (Head-on)"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-background-soft border-transparent focus:bg-white focus:border-primary transition-all outline-none text-sm"
+                                    className={cn(
+                                        "w-full px-4 py-2.5 rounded-lg bg-background-soft border-2 transition-all outline-none text-sm",
+                                        errors.name ? "border-red-500 bg-red-50/10 focus:border-red-500" : "border-transparent focus:bg-white focus:border-primary"
+                                    )}
                                 />
+                                {errors.name && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.name}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold flex items-center justify-between">
@@ -179,10 +207,17 @@ export default function AddProductPage() {
                                 <textarea
                                     rows={4}
                                     value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    onChange={e => {
+                                        setFormData({ ...formData, description: e.target.value });
+                                        if (errors.description) setErrors({ ...errors, description: "" });
+                                    }}
                                     placeholder="Describe your product details here..."
-                                    className="w-full px-4 py-2.5 rounded-lg bg-background-soft border-transparent focus:bg-white focus:border-primary transition-all outline-none text-sm resize-none"
+                                    className={cn(
+                                        "w-full px-4 py-2.5 rounded-lg bg-background-soft border-2 transition-all outline-none text-sm resize-none",
+                                        errors.description ? "border-red-500 bg-red-50/10 focus:border-red-500" : "border-transparent focus:bg-white focus:border-primary"
+                                    )}
                                 />
+                                {errors.description && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.description}</p>}
                             </div>
                         </div>
                     </section>
@@ -198,11 +233,18 @@ export default function AddProductPage() {
                                     <input
                                         type="number"
                                         value={formData.price}
-                                        onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                        onChange={e => {
+                                            setFormData({ ...formData, price: e.target.value });
+                                            if (errors.price) setErrors({ ...errors, price: "" });
+                                        }}
                                         placeholder="0.00"
-                                        className="w-full pl-8 pr-4 py-2.5 rounded-lg bg-background-soft border-transparent focus:bg-white focus:border-primary transition-all outline-none text-sm font-bold"
+                                        className={cn(
+                                            "w-full pl-8 pr-4 py-2.5 rounded-lg bg-background-soft border-2 transition-all outline-none text-sm font-bold",
+                                            errors.price ? "border-red-500 bg-red-50/10 focus:border-red-500" : "border-transparent focus:bg-white focus:border-primary"
+                                        )}
                                     />
                                 </div>
+                                {errors.price && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.price}</p>}
                             </div>
                         </div>
                     </section>
@@ -245,7 +287,10 @@ export default function AddProductPage() {
                     {/* Media */}
                     <section className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
                         <h3 className="text-lg font-bold">Upload Product Image</h3>
-                        <label className="border-2 border-dashed border-border-custom rounded-2xl p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary transition-all">
+                        <label className={cn(
+                            "border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center group cursor-pointer transition-all",
+                            errors.images ? "border-red-500 bg-red-50/10" : "border-border-custom hover:border-primary"
+                        )}>
                             <input type="file" className="hidden" onChange={handleImageUpload} disabled={uploading} accept="image/*" />
                             <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 {uploading ? <Loader2 size={24} className="text-primary animate-spin" /> : <Upload size={24} className="text-primary" />}
@@ -253,6 +298,7 @@ export default function AddProductPage() {
                             <p className="text-sm font-bold">{uploading ? "Uploading..." : "Click to Upload"}</p>
                             <p className="text-xs text-text-muted mt-1">PNG, JPG recommended</p>
                         </label>
+                        {errors.images && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.images}</p>}
 
                         <div className="grid grid-cols-2 gap-3 mt-4">
                             {formData.images.map((img, idx) => (
