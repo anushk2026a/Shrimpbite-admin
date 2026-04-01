@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Shield, ShieldCheck, Edit2, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import roleService from "@/data/services/roleService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function AuthorityPage() {
-    const [roles, setRoles] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     
     // Edit Modal state
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -29,21 +29,15 @@ export default function AuthorityPage() {
         "Control Authority"
     ];
 
-    const loadRoles = async () => {
-        setLoading(true);
-        try {
+    // Using React Query for roles fetching
+    const { data: roles = [], isLoading: loading } = useQuery({
+        queryKey: ["adminRoles"],
+        queryFn: async () => {
             const res = await roleService.getRoles();
-            setRoles(res.roles || []);
-        } catch (error) {
-            console.error("Failed to load roles", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadRoles();
-    }, []);
+            return res.roles || [];
+        },
+        staleTime: 5 * 60 * 1000,
+    });
 
     const handleOpenEdit = (role: any) => {
         setEditingRole(role);
@@ -52,9 +46,9 @@ export default function AuthorityPage() {
     };
 
     const toggleModule = (module: string) => {
-        setSelectedModules(prev => 
+        setSelectedModules((prev: string[]) => 
             prev.includes(module) 
-                ? prev.filter(m => m !== module)
+                ? prev.filter((m: string) => m !== module)
                 : [...prev, module]
         );
     };
@@ -64,9 +58,9 @@ export default function AuthorityPage() {
         try {
             await roleService.updateRole(editingRole._id, { modules: selectedModules });
             toast.success("Role updated successfully!");
+            queryClient.invalidateQueries({ queryKey: ["adminRoles"] });
             setIsEditOpen(false);
             setEditingRole(null);
-            loadRoles();
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to update role");
         }
@@ -76,7 +70,7 @@ export default function AuthorityPage() {
         try {
             await roleService.updateRole(roleId, { isActive: !currentStatus });
             toast.success(`Role ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-            loadRoles();
+            queryClient.invalidateQueries({ queryKey: ["adminRoles"] });
         } catch (err: any) {
             toast.error("Failed to toggle status");
         }
@@ -124,7 +118,7 @@ export default function AuthorityPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border-custom text-sm">
-                                {roles.map((role) => (
+                                {roles.map((role: any) => (
                                     <tr key={role._id} className="hover:bg-background-soft transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">

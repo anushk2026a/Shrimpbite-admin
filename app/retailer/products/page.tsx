@@ -18,6 +18,8 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import retailerService from "@/data/services/retailerService"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 interface Product {
     _id: string;
     name: string;
@@ -33,32 +35,26 @@ interface Product {
 }
 
 export default function RetailerProductsPage() {
-    const [products, setProducts] = useState<Product[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState("All Products")
     const [searchQuery, setSearchQuery] = useState("")
 
-    useEffect(() => {
-        fetchProducts()
-    }, [])
-
-    const fetchProducts = async () => {
-        setLoading(true)
-        try {
+    // Using React Query for inventory fetching & caching
+    const { data: products = [], isLoading: loading } = useQuery<Product[]>({
+        queryKey: ["retailerProducts"],
+        queryFn: async () => {
             const response = await retailerService.getProducts()
-            setProducts(response.data)
-        } catch (error) {
-            console.error("Error fetching products:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
+            return response.data || []
+        },
+        staleTime: 5 * 60 * 1000, // Data stays green for 5 minutes
+    })
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure you want to delete this product?")) return
         try {
             await retailerService.deleteProduct(id)
-            setProducts(products.filter(p => p._id !== id))
+            // Invalidate products query to refresh the list
+            queryClient.invalidateQueries({ queryKey: ["retailerProducts"] })
         } catch (error) {
             console.error("Delete failed:", error)
         }

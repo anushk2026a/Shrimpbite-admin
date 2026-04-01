@@ -6,12 +6,10 @@ import { cn } from "@/lib/utils";
 import roleService from "@/data/services/roleService";
 import { toast } from "sonner";
 
-export default function AdminRolesPage() {
-    const [roles, setRoles] = useState<any[]>([]);
-    const [admins, setAdmins] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-    // Modals state
+export default function AdminRolesPage() {
+    const queryClient = useQueryClient();
     const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
 
@@ -35,35 +33,36 @@ export default function AdminRolesPage() {
         "Control Authority"
     ];
 
-    const loadData = async () => {
-        setLoading(true);
-        try {
-            const [rolesRes, adminsRes] = await Promise.all([
-                roleService.getRoles(),
-                roleService.getAdmins()
-            ]);
-            setRoles(rolesRes.roles || []);
-            setAdmins(adminsRes.admins || []);
-        } catch (error) {
-            console.error("Failed to load roles/admins", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Using React Query for roles & admins fetching
+    const { data: roles = [], isLoading: rolesLoading } = useQuery({
+        queryKey: ["adminRoles"],
+        queryFn: async () => {
+            const res = await roleService.getRoles();
+            return res.roles || [];
+        },
+        staleTime: 5 * 60 * 1000,
+    });
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const { data: admins = [], isLoading: adminsLoading } = useQuery({
+        queryKey: ["adminStaff"],
+        queryFn: async () => {
+            const res = await roleService.getAdmins();
+            return res.admins || [];
+        },
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const loading = rolesLoading || adminsLoading;
 
     const handleCreateRole = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await roleService.createRole({ name: newRoleName, modules: selectedModules });
             toast.success("Role created successfully!");
+            queryClient.invalidateQueries({ queryKey: ["adminRoles"] });
             setIsCreateRoleOpen(false);
             setNewRoleName("");
             setSelectedModules([]);
-            loadData();
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to create role");
         }
@@ -78,11 +77,12 @@ export default function AdminRolesPage() {
                 roleId: inviteRoleId
             });
             toast.success("Admin invited successfully!");
+            queryClient.invalidateQueries({ queryKey: ["adminStaff"] });
+            queryClient.invalidateQueries({ queryKey: ["adminRoles"] }); // For capacity
             setIsInviteOpen(false);
             setInviteName("");
             setInviteEmail("");
             setInviteRoleId("");
-            loadData();
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to invite admin");
         }
@@ -166,7 +166,7 @@ export default function AdminRolesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-custom text-sm">
-                                    {roles.map((role) => (
+                                    {roles.map((role: any) => (
                                         <tr key={role._id} className="hover:bg-background-soft/50 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
@@ -260,7 +260,7 @@ export default function AdminRolesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-custom text-sm">
-                                    {admins.map((admin) => (
+                                    {admins.map((admin: any) => (
                                         <tr key={admin._id} className="hover:bg-background-soft/50 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
@@ -403,7 +403,7 @@ export default function AdminRolesPage() {
                                     className="w-full px-4 py-2.5 bg-gray-50 border border-border-custom rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                                 >
                                     <option value="" disabled>Select a role...</option>
-                                    {roles.map(r => (
+                                    {roles.map((r: any) => (
                                         <option key={r._id} value={r._id}>{r.name}</option>
                                     ))}
                                 </select>

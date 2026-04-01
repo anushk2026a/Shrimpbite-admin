@@ -7,9 +7,11 @@ import { toast } from "sonner"
 import retailerService from "@/data/services/retailerService"
 import useAuthStore from "@/data/store/useAuthStore"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function StoreSettingsPage() {
+    const queryClient = useQueryClient()
     const { user } = useAuthStore()
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState(false)
     const [formData, setFormData] = useState({
@@ -28,34 +30,37 @@ export default function StoreSettingsPage() {
         }
     })
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const data = await retailerService.getProfile(user._id)
-                setFormData({
-                    businessName: data.businessDetails?.businessName || "",
-                    storeDisplayName: data.businessDetails?.storeDisplayName || "",
-                    ownerName: data.businessDetails?.ownerName || data.name || "",
-                    email: data.email || "",
-                    whatsappNumber: data.whatsappNumber || "",
-                    storeImage: data.businessDetails?.storeImage || "",
-                    location: {
-                        address: data.businessDetails?.location?.address || "",
-                        city: data.businessDetails?.location?.city || "",
-                        state: data.businessDetails?.location?.state || "",
-                        pincode: data.businessDetails?.location?.pincode || "",
-                        landmark: data.businessDetails?.location?.landmark || ""
-                    }
-                })
-            } catch (error) {
-                console.error("Error fetching profile:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
+    // Using React Query for profile fetching & caching
+    const { data: profile, isLoading: loading } = useQuery({
+        queryKey: ["retailerProfile", user?._id],
+        queryFn: async () => {
+            if (!user?._id) return null
+            return await retailerService.getProfile(user._id)
+        },
+        enabled: !!user?._id,
+        staleTime: 10 * 60 * 1000,
+    })
 
-        if (user?._id) fetchProfile()
-    }, [user])
+    // Sync profile data to local form state when loaded
+    useEffect(() => {
+        if (profile) {
+            setFormData({
+                businessName: profile.businessDetails?.businessName || "",
+                storeDisplayName: profile.businessDetails?.storeDisplayName || "",
+                ownerName: profile.businessDetails?.ownerName || profile.name || "",
+                email: profile.email || "",
+                whatsappNumber: profile.whatsappNumber || "",
+                storeImage: profile.businessDetails?.storeImage || "",
+                location: {
+                    address: profile.businessDetails?.location?.address || "",
+                    city: profile.businessDetails?.location?.city || "",
+                    state: profile.businessDetails?.location?.state || "",
+                    pincode: profile.businessDetails?.location?.pincode || "",
+                    landmark: profile.businessDetails?.location?.landmark || ""
+                }
+            })
+        }
+    }, [profile])
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -84,6 +89,7 @@ export default function StoreSettingsPage() {
                 },
                 whatsappNumber: formData.whatsappNumber
             })
+            queryClient.invalidateQueries({ queryKey: ["retailerProfile", user?._id] })
             toast.success("Settings saved successfully!")
         } catch (error) {
             console.error("Save failed:", error)

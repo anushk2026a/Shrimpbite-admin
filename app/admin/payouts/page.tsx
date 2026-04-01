@@ -27,9 +27,10 @@ interface Payout {
     processedAt?: string;
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function AdminPayoutsPage() {
-    const [payouts, setPayouts] = useState<Payout[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
     const [filterStatus, setFilterStatus] = useState("All")
     const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
@@ -39,33 +40,28 @@ export default function AdminPayoutsPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const ITEMS_PER_PAGE = 10
 
-    useEffect(() => {
-        fetchPayouts()
-    }, [])
+    // Using React Query for payouts fetching & caching
+    const { data: payouts = [], isLoading: loading } = useQuery<Payout[]>({
+        queryKey: ["adminPayouts"],
+        queryFn: async () => {
+            return await adminService.getPayouts()
+        },
+        staleTime: 2 * 60 * 1000,
+    })
+
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1)
     }, [searchTerm, filterStatus])
 
-    const fetchPayouts = async () => {
-        setLoading(true)
-        try {
-            const data = await adminService.getPayouts()
-            setPayouts(data)
-        } catch (error) {
-            console.error("Error fetching payouts:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     const handleApprove = async () => {
         if (!selectedPayout || !transactionId) return
         setActionLoading(true)
         try {
             await adminService.approvePayout(selectedPayout._id, transactionId)
-            fetchPayouts()
+            // Invalidate to refresh the list
+            queryClient.invalidateQueries({ queryKey: ["adminPayouts"] })
             setShowModal(false)
             setSelectedPayout(null)
             setTransactionId("")

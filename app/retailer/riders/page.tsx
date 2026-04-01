@@ -5,9 +5,10 @@ import { Users, Plus, Bike, Power, MapPin, MoreVertical, Trash2, Eye, X, Phone, 
 import retailerService from "@/data/services/retailerService"
 import { toast } from "sonner"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function RidersPage() {
-    const [riders, setRiders] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [showAddModal, setShowAddModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [selectedRider, setSelectedRider] = useState<any>(null)
@@ -25,23 +26,15 @@ export default function RidersPage() {
         plateNumber: ""
     })
 
-    useEffect(() => {
-        fetchRiders()
-    }, [])
-
-    const fetchRiders = async () => {
-        try {
-            setLoading(true)
+    // Using React Query for riders fetching & caching
+    const { data: riders = [], isLoading: loading } = useQuery({
+        queryKey: ["retailerRiders"],
+        queryFn: async () => {
             const response = await retailerService.getRiders()
-            if (response.success) {
-                setRiders(response.data)
-            }
-        } catch (error) {
-            toast.error("Failed to fetch riders")
-        } finally {
-            setLoading(false)
-        }
-    }
+            return response.data || []
+        },
+        staleTime: 10 * 60 * 1000, // Riders don't change often, keep for 10 min
+    })
 
     const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -58,7 +51,7 @@ export default function RidersPage() {
             if (response.success) {
                 toast.success("Rider added successfully")
                 setShowAddModal(false)
-                fetchRiders()
+                queryClient.invalidateQueries({ queryKey: ["retailerRiders"] })
                 setFormData({ name: "", phone: "", vehicleType: "Bike", plateNumber: "" })
             }
         } catch (error: any) {
@@ -74,7 +67,7 @@ export default function RidersPage() {
                 toast.success("Rider updated successfully")
                 setIsEditMode(false)
                 setSelectedRider(response.data)
-                setRiders(riders.map((r: any) => r._id === selectedRider._id ? response.data : r))
+                queryClient.invalidateQueries({ queryKey: ["retailerRiders"] })
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to update rider")
@@ -98,8 +91,7 @@ export default function RidersPage() {
         try {
             const response = await retailerService.updateRiderStatus(riderId, newStatus)
             if (response.success) {
-                const updatedRiders = riders.map((r: any) => r._id === riderId ? { ...r, status: newStatus } : r)
-                setRiders(updatedRiders)
+                queryClient.invalidateQueries({ queryKey: ["retailerRiders"] })
                 if (selectedRider && selectedRider._id === riderId) {
                     setSelectedRider({ ...selectedRider, status: newStatus })
                 }
@@ -116,7 +108,7 @@ export default function RidersPage() {
         try {
             const response = await retailerService.deleteRider(riderId)
             if (response.success) {
-                setRiders(riders.filter((r: any) => r._id !== riderId))
+                queryClient.invalidateQueries({ queryKey: ["retailerRiders"] })
                 if (showDetailsModal && selectedRider?._id === riderId) {
                     setShowDetailsModal(false)
                 }

@@ -34,9 +34,10 @@ interface Retailer {
     };
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function RetailersPage() {
-    const [retailers, setRetailers] = useState<Retailer[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [filter, setFilter] = useState("under_review")
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(null)
@@ -45,32 +46,21 @@ export default function RetailersPage() {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
     const limit = 10
 
-    useEffect(() => {
-        setCurrentPage(1)
-        fetchRetailers(1)
-    }, [filter, searchTerm])
+    // Using React Query for retailers fetching & caching
+    const { data: retailersData, isLoading: loading } = useQuery({
+        queryKey: ["adminRetailers", filter, currentPage, searchTerm],
+        queryFn: async () => {
+            const response = await adminService.getRetailers(filter, currentPage, limit, searchTerm)
+            return response
+        },
+        staleTime: 2 * 60 * 1000,
+    })
 
-    useEffect(() => {
-        fetchRetailers(currentPage)
-    }, [currentPage])
-
-    const fetchRetailers = async (page: number) => {
-        setLoading(true)
-        try {
-            const response = await adminService.getRetailers(filter, page, limit, searchTerm)
-            setRetailers(response.data)
-            setTotalPages(response.pagination.totalPages)
-            setTotalItems(response.pagination.totalRetailers)
-        } catch (error) {
-            console.error("Error fetching retailers:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const retailers = retailersData?.data || []
+    const totalPages = retailersData?.pagination?.totalPages || 1
+    const totalItems = retailersData?.pagination?.totalRetailers || 0
 
     const handleUpdateStatus = async (userId: string, status: string) => {
         if (status === "rejected" && !rejectionReason) {
@@ -82,10 +72,11 @@ export default function RetailersPage() {
         try {
             await adminService.updateRetailerStatus(userId, status, rejectionReason)
             toast.success(`Retailer ${status} successfully`)
+            // Invalidate queries to refresh the list
+            queryClient.invalidateQueries({ queryKey: ["adminRetailers"] })
             setTimeout(() => {
                 setSelectedRetailer(null)
                 setRejectionReason("")
-                fetchRetailers(currentPage)
             }, 1000)
         } catch (error: unknown) {
             console.error(error)
@@ -155,7 +146,7 @@ export default function RetailersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border-custom text-sm">
-                                {filteredRetailers.map((ret) => (
+                                {filteredRetailers.map((ret: Retailer) => (
                                     <tr key={ret._id} className="hover:bg-background-soft/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">

@@ -36,25 +36,45 @@ const statusStyles: any = {
     "Cancelled": "bg-red-50 text-red-100 border-red-100",
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 function OrdersContent() {
+    const queryClient = useQueryClient()
     const searchParams = useSearchParams()
-    const [mounted, setMounted] = useState(false)
-    const [ordersData, setOrdersData] = useState<any>(null)
-    const [riders, setRiders] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-    const [searchQuery, setSearchQuery] = useState("")
+    const [mounted, setMounted] = useState<boolean>(false)
+    const [searchQuery, setSearchQuery] = useState<string>("")
     const [orderTypeFilter, setOrderTypeFilter] = useState<"All" | "Subscription" | "One-time">("All")
     const [statusFilter, setStatusFilter] = useState<"All" | "Pending" | "Completed">("All")
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
-    const [currentPage, setCurrentPage] = useState(1)
+    const [currentPage, setCurrentPage] = useState<number>(1)
     const [processingStatusConfirm, setProcessingStatusConfirm] = useState<{orderId: string, nextStatus: string, productName: string} | null>(null)
 
     // Tooltip State
     const [hoveredOrderId, setHoveredOrderId] = useState<string | null>(null)
-    const [tooltipStep, setTooltipStep] = useState(1)
+    const [tooltipStep, setTooltipStep] = useState<number>(1)
     const leaveTimer = useRef<NodeJS.Timeout | null>(null)
 
     const ORDERS_PER_PAGE = 10
+
+    // Using React Query for orders fetching & caching
+    const { data: ordersData, isLoading: ordersLoading } = useQuery({
+        queryKey: ["retailerOrders"],
+        queryFn: async () => {
+            const res = await retailerService.getOrders()
+            return res.data
+        },
+        staleTime: 5 * 60 * 1000,
+    })
+
+    // Using React Query for riders fetching & caching
+    const { data: riders = [] } = useQuery({
+        queryKey: ["retailerRiders"],
+        queryFn: async () => {
+            const res = await retailerService.getRiders()
+            return res.data || []
+        },
+        staleTime: 10 * 60 * 1000,
+    })
 
     useEffect(() => {
         const filter = searchParams.get("filter")
@@ -67,8 +87,6 @@ function OrdersContent() {
 
     useEffect(() => {
         setMounted(true)
-        fetchOrders()
-        fetchRiders()
 
         // Socket connection logic
         const userId = localStorage.getItem("userId")
@@ -83,7 +101,6 @@ function OrdersContent() {
             socket.on("orderUpdate", (data) => {
                 console.log("⚡ Real-time Order Update:", data)
 
-                // Helper to normalize status casing (e.g., DELIVERED -> Delivered)
                 const normalizeStatus = (s: string) => {
                     if (!s) return s;
                     return s.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
@@ -92,63 +109,54 @@ function OrdersContent() {
                 const newStatus = normalizeStatus(data.status);
                 toast.info(`Order Update: ${newStatus}`)
 
-                // Instant Local Update for Row and Stats
-                if (data.orderId && data.status) {
-                    setOrdersData((prev: any) => {
-                        if (!prev) return prev;
+                // Update cache directly using React Query
+                queryClient.setQueryData(["retailerOrders"], (prev: any) => {
+                    if (!prev) return prev;
 
-                        const isExisting = prev.orders.find((o: any) => o.id === data.orderId);
-                        let updatedOrders;
+                    const isExisting = prev.orders.find((o: any) => o.id === data.orderId);
+                    let updatedOrders;
 
-                        if (isExisting) {
-                            // 1. Update existing order
-                            updatedOrders = prev.orders.map((o: any) =>
-                                o.id === data.orderId ? { ...o, status: newStatus } : o
-                            );
-                        } else {
-                            // 2. Add as NEW order (likely from subscription cron or new app order)
-                            // Construct a basic UI-friendly order object from the data
-                            const newOrder = {
-                                id: data.orderId,
-                                product: data.data?.items?.map((i: any) => i.product?.name || "Product").join(", ") || (data.data?.product || "New Order"),
-                                date: new Date(data.data?.createdAt || new Date()).toLocaleString("en-IN", {
-                                    timeZone: "Asia/Kolkata",
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: true
-                                }).replace(/\//g, "-"),
-                                price: data.data?.totalAmount || data.data?.price || "0.00",
-                                payment: data.data?.paymentStatus || "Paid",
-                                status: newStatus,
-                                orderType: data.data?.orderType || (data.orderId.startsWith("SUB-") ? "Subscription" : "One-time"),
-                                rider: data.data?.rider,
-                                subscriptionDetails: data.data?.subscriptionDetails
-                            };
-                            updatedOrders = [newOrder, ...prev.orders];
-                        }
-
-                        // 3. Recalculate basic stats for instant feedback
-                        const total = updatedOrders.length;
-                        const pending = updatedOrders.filter((o: any) => ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned'].includes(o.status)).length;
-                        const completed = updatedOrders.filter((o: any) => ['Delivered', 'Completed'].includes(o.status)).length;
-
-                        return {
-                            ...prev,
-                            stats: {
-                                ...prev.stats,
-                                pendingOrders: pending,
-                                completedOrders: completed,
-                                completedPercentage: `${Math.round((completed / total) * 100)}%`
-                            },
-                            orders: updatedOrders
+                    if (isExisting) {
+                        updatedOrders = prev.orders.map((o: any) =>
+                            o.id === data.orderId ? { ...o, status: newStatus } : o
+                        );
+                    } else {
+                        const newOrder = {
+                            id: data.orderId,
+                            product: data.data?.items?.map((i: any) => i.product?.name || "Product").join(", ") || (data.data?.product || "New Order"),
+                            date: new Date(data.data?.createdAt || new Date()).toLocaleString("en-IN", {
+                                timeZone: "Asia/Kolkata",
+                                day: "2-digit",
+                                month: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true
+                            }).replace(/\//g, "-"),
+                            price: data.data?.totalAmount || data.data?.price || "0.00",
+                            payment: data.data?.paymentStatus || "Paid",
+                            status: newStatus,
+                            orderType: data.data?.orderType || (data.orderId.startsWith("SUB-") ? "Subscription" : "One-time"),
+                            rider: data.data?.rider,
+                            subscriptionDetails: data.data?.subscriptionDetails
                         };
-                    });
-                }
+                        updatedOrders = [newOrder, ...prev.orders];
+                    }
 
-                // Still fetch to get correct official data from server
-                fetchOrders()
+                    const total = updatedOrders.length;
+                    const pending = updatedOrders.filter((o: any) => ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned'].includes(o.status)).length;
+                    const completed = updatedOrders.filter((o: any) => ['Delivered', 'Completed'].includes(o.status)).length;
+
+                    return {
+                        ...prev,
+                        stats: {
+                            ...prev.stats,
+                            pendingOrders: pending,
+                            completedOrders: completed,
+                            completedPercentage: `${Math.round((completed / total) * 100)}%`
+                        },
+                        orders: updatedOrders
+                    };
+                });
             })
 
             socket.on("disconnect", () => {
@@ -160,33 +168,9 @@ function OrdersContent() {
             socket.off("orderUpdate")
             socket.disconnect()
         }
-    }, [])
+    }, [queryClient])
 
-    const fetchRiders = async () => {
-        try {
-            const res = await retailerService.getRiders()
-            if (res.success) {
-                setRiders(res.data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch riders", error)
-        }
-    }
-
-    const fetchOrders = async () => {
-        try {
-            const res = await retailerService.getOrders()
-            if (res.success) {
-                setOrdersData(res.data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch shop orders", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    if (!mounted || loading || !ordersData) {
+    if (!mounted || ordersLoading || !ordersData) {
         return <div className="space-y-6 animate-pulse p-4">
             <div className="h-12 bg-background-soft rounded-xl w-1/4" />
             <div className="grid grid-cols-4 gap-6">
@@ -233,7 +217,7 @@ function OrdersContent() {
                 const res = await retailerService.updateOrderStatus(orderId, nextStatus)
                 if (res.success) {
                     toast.success(`Order marked as ${nextStatus}`)
-                    fetchOrders()
+                    queryClient.invalidateQueries({ queryKey: ["retailerOrders"] })
                 } else {
                     toast.error(res.message || "Failed to update status")
                 }
@@ -262,7 +246,7 @@ function OrdersContent() {
             const res = await retailerService.assignRider(orderId, riderId)
             if (res.success) {
                 toast.success("Rider assigned successfully")
-                fetchOrders()
+                queryClient.invalidateQueries({ queryKey: ["retailerOrders"] })
             }
         } catch (error) {
             console.error("Failed to assign rider", error)
@@ -645,7 +629,7 @@ function OrdersContent() {
                             </p>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    onClick={() => setCurrentPage((prev: number) => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
                                     className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border-custom bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all text-text-muted hover:text-primary"
                                 >
@@ -676,7 +660,7 @@ function OrdersContent() {
                                     })}
                                 </div>
                                 <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    onClick={() => setCurrentPage((prev: number) => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage === totalPages}
                                     className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border-custom bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-soft transition-all text-text-muted hover:text-primary"
                                 >
@@ -800,7 +784,7 @@ function OrdersContent() {
                                         const res = await retailerService.updateOrderStatus(orderId, nextStatus)
                                         if (res.success) {
                                             toast.success(`Order marked as ${nextStatus}`)
-                                            fetchOrders()
+                                            queryClient.invalidateQueries({ queryKey: ["retailerOrders"] })
                                         } else {
                                             toast.error(res.message || "Failed to update status")
                                         }

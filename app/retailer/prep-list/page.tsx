@@ -19,13 +19,22 @@ interface PrepItem {
     status: 'Pending' | 'Ready' | 'Shortage';
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function DailyPrepListPage() {
-    const [prepItems, setPrepItems] = useState<PrepItem[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const queryClient = useQueryClient()
+
+    // Using React Query for prep list fetching & caching
+    const { data: prepItems = [], isLoading } = useQuery<PrepItem[]>({
+        queryKey: ["retailerPrepList"],
+        queryFn: async () => {
+            const response = await retailerService.getPrepList()
+            return response.data || []
+        },
+        staleTime: 2 * 60 * 1000, // Refresh every 2 minutes or on socket events
+    })
 
     useEffect(() => {
-        fetchPrepList()
-
         // Socket real-time updates
         const userId = localStorage.getItem("userId")
         if (userId) {
@@ -35,7 +44,8 @@ export default function DailyPrepListPage() {
             })
             socket.on("orderUpdate", (data) => {
                 console.log("⚡ Prep List Status Sync:", data)
-                fetchPrepList()
+                // Invalidate query to refresh the list from server
+                queryClient.invalidateQueries({ queryKey: ["retailerPrepList"] })
             })
         }
 
@@ -43,19 +53,7 @@ export default function DailyPrepListPage() {
             socket.off("orderUpdate")
             socket.disconnect()
         }
-    }, [])
-
-    const fetchPrepList = async () => {
-        setIsLoading(true)
-        try {
-            const response = await retailerService.getPrepList()
-            setPrepItems(response.data)
-        } catch (error) {
-            console.error("Error fetching prep list:", error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    }, [queryClient])
 
     const totalWeight = prepItems.reduce((sum, item) => sum + item.quantity, 0).toFixed(1)
     const totalOrders = prepItems.reduce((sum, item) => sum + item.orderCount, 0)

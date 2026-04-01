@@ -23,40 +23,30 @@ interface AppUser {
     createdAt: string;
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function UsersPage() {
-    const [users, setUsers] = useState<AppUser[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedUser, setSelectedUser] = useState<AppUser | null>(null)
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
     const limit = 10
 
-    useEffect(() => {
-        setCurrentPage(1)
-        fetchUsers(1)
-    }, [searchTerm])
+    // Using React Query for users fetching & caching
+    const { data: usersData, isLoading: loading } = useQuery({
+        queryKey: ["adminUsers", currentPage, searchTerm],
+        queryFn: async () => {
+            const response = await adminService.getUsers(currentPage, limit, searchTerm)
+            return response
+        },
+        staleTime: 5 * 60 * 1000,
+    })
 
-    useEffect(() => {
-        fetchUsers(currentPage)
-    }, [currentPage])
-
-    const fetchUsers = async (page: number) => {
-        setLoading(true)
-        try {
-            const response = await adminService.getUsers(page, limit, searchTerm)
-            setUsers(response.data)
-            setTotalPages(response.pagination.totalPages)
-            setTotalItems(response.pagination.totalUsers)
-        } catch (error) {
-            console.error("Error fetching users:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const users = usersData?.data || []
+    const totalPages = usersData?.pagination?.totalPages || 1
+    const totalItems = usersData?.pagination?.totalUsers || 0
 
     return (
         <div className="space-y-6">
@@ -97,7 +87,7 @@ export default function UsersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border-custom text-sm">
-                                {users.map((user) => (
+                                {users.map((user: AppUser) => (
                                     <tr key={user._id} className="hover:bg-background-soft/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">

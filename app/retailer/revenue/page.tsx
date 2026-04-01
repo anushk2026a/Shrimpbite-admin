@@ -13,17 +13,10 @@ interface Payout {
     transactionId?: string;
 }
 
-export default function RetailerRevenuePage() {
-    const [payouts, setPayouts] = useState<Payout[]>([])
-    const [loadingPayouts, setLoadingPayouts] = useState(true)
-    const [loadingStats, setLoadingStats] = useState(true)
-    const [revenueStats, setRevenueStats] = useState({
-        availableBalance: 0,
-        estimatedEarnings: 0,
-        totalSettled: 0,
-        totalEarnings: 0
-    })
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
+export default function RetailerRevenuePage() {
+    const queryClient = useQueryClient()
     const [showPayoutModal, setShowPayoutModal] = useState(false)
     const [payoutAmount, setPayoutAmount] = useState("")
     const [bankDetails, setBankDetails] = useState({
@@ -33,36 +26,29 @@ export default function RetailerRevenuePage() {
     })
     const [submitting, setSubmitting] = useState(false)
 
-    useEffect(() => {
-        fetchPayoutHistory()
-        fetchRevenueStats()
-    }, [])
-
-    const fetchRevenueStats = async () => {
-        setLoadingStats(true)
-        try {
+    // Using React Query for revenue stats fetching & caching
+    const { data: revenueStats = {
+        availableBalance: 0,
+        estimatedEarnings: 0,
+        totalSettled: 0,
+        totalEarnings: 0
+    }, isLoading: loadingStats } = useQuery({
+        queryKey: ["retailerRevenueStats"],
+        queryFn: async () => {
             const res = await retailerService.getRevenueStats()
-            if (res.success) {
-                setRevenueStats(res.data)
-            }
-        } catch (error) {
-            console.error("Error fetching revenue stats:", error)
-        } finally {
-            setLoadingStats(false)
-        }
-    }
+            return res.data
+        },
+        staleTime: 5 * 1000, // Frequent updates for money
+    })
 
-    const fetchPayoutHistory = async () => {
-        setLoadingPayouts(true)
-        try {
-            const data = await retailerService.getPayoutHistory()
-            setPayouts(data)
-        } catch (error) {
-            console.error("Error fetching payouts:", error)
-        } finally {
-            setLoadingPayouts(false)
-        }
-    }
+    // Using React Query for payout history fetching & caching
+    const { data: payouts = [], isLoading: loadingPayouts } = useQuery<Payout[]>({
+        queryKey: ["retailerPayoutHistory"],
+        queryFn: async () => {
+            return await retailerService.getPayoutHistory()
+        },
+        staleTime: 2 * 60 * 1000,
+    })
 
     const handleRequestPayout = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -72,8 +58,9 @@ export default function RetailerRevenuePage() {
                 amount: Number(payoutAmount),
                 bankDetails
             })
-            fetchPayoutHistory()
-            fetchRevenueStats() // Refresh balances
+            // Invalidate current queries to refresh from server
+            queryClient.invalidateQueries({ queryKey: ["retailerRevenueStats"] })
+            queryClient.invalidateQueries({ queryKey: ["retailerPayoutHistory"] })
             setShowPayoutModal(false)
             setPayoutAmount("")
         } catch (error) {

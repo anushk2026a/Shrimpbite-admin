@@ -36,25 +36,40 @@ const statusStyles: any = {
     "Cancelled": "bg-red-50 text-red-600 border-red-100",
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 function AdminOrdersContent() {
+    const queryClient = useQueryClient()
     const searchParams = useSearchParams()
     const [mounted, setMounted] = useState(false)
-    const [ordersData, setOrdersData] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState("All")
     const [typeFilter, setTypeFilter] = useState("All")
     const [currentPage, setCurrentPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
     const ORDERS_PER_PAGE = 10
 
+    // Using React Query for admin orders fetching & caching
+    const { data: ordersData, isLoading: loading } = useQuery({
+        queryKey: ["adminOrders", currentPage, searchQuery, statusFilter, typeFilter],
+        queryFn: async () => {
+            const params: any = {
+                page: currentPage,
+                limit: ORDERS_PER_PAGE,
+                search: searchQuery
+            };
+
+            if (statusFilter !== "All") params.status = statusFilter;
+            if (typeFilter !== "All") params.type = typeFilter;
+
+            const res = await adminService.getOrders(params)
+            return res
+        },
+        staleTime: 5 * 1000, // Frequent updates for orders
+    })
+
     useEffect(() => {
         setMounted(true)
-
-        // Initial fetch
-        fetchOrders(1, searchQuery, statusFilter, typeFilter)
 
         // Socket connection logic for Admin
         socket.connect()
@@ -67,53 +82,32 @@ function AdminOrdersContent() {
         socket.on("orderUpdate", (data) => {
             console.log("⚡ Real-time Order Update (Admin):", data)
             toast.info(`Order Update: ${data.orderId} is now ${data.status}`)
-            fetchOrders(currentPage, searchQuery, statusFilter, typeFilter) // Refresh with current filters
+            
+            // OPTION 1: Update the cache directly for ultra-responsiveness
+            queryClient.setQueriesData({ queryKey: ["adminOrders"] }, (old: any) => {
+                if (!old?.data?.orders) return old;
+                return {
+                    ...old,
+                    data: {
+                        ...old.data,
+                        orders: old.data.orders.map((o: any) => 
+                            o.orderId === data.orderId ? { ...o, status: data.status } : o
+                        )
+                    }
+                }
+            })
+            
+            // OPTION 2: Still invalidate to ensure stats like pending/completed counts stay correct
+            queryClient.invalidateQueries({ queryKey: ["adminOrders"] })
         })
 
         return () => {
             socket.off("orderUpdate")
             socket.disconnect()
         }
-    }, [])
+    }, [queryClient])
 
-    // Trigger fetch on filter/page change with debounce for search
-    useEffect(() => {
-        if (!mounted) return;
-
-        const timeoutId = setTimeout(() => {
-            fetchOrders(currentPage, searchQuery, statusFilter, typeFilter)
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [currentPage, searchQuery, statusFilter, typeFilter])
-
-    const fetchOrders = async (page: number, search: string, status: string, type: string) => {
-        setLoading(true)
-        try {
-            const params: any = {
-                page,
-                limit: ORDERS_PER_PAGE,
-                search
-            };
-
-            if (status !== "All") params.status = status;
-            if (type !== "All") params.type = type;
-
-            const res = await adminService.getOrders(params)
-            if (res.success) {
-                setOrdersData(res.data)
-                setTotalPages(res.pagination.totalPages)
-                setTotalItems(res.pagination.totalOrders)
-            }
-        } catch (error) {
-            console.error("Failed to fetch admin orders", error)
-            toast.error("Failed to load orders")
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    if (!mounted || !ordersData) {
+    if (!mounted || !ordersData?.data) {
         return <div className="space-y-6 animate-pulse p-4">
             <div className="h-12 bg-background-soft rounded-xl w-1/4" />
             <div className="grid grid-cols-4 gap-6">
@@ -123,16 +117,20 @@ function AdminOrdersContent() {
         </div>
     }
 
+    const { stats: statsObj, orders } = ordersData.data
+    const totalPages = ordersData.pagination?.totalPages || 1
+    const totalItems = ordersData.pagination?.totalOrders || 0
+
     const stats = [
-        { title: "Total Orders", value: ordersData.stats.totalOrders.toLocaleString(), color: "bg-primary-light text-primary", filterValue: "All" },
-        { title: "Pending Orders", value: ordersData.stats.pendingOrders.toLocaleString(), color: "bg-warning-50 text-warning", filterValue: "Pending" },
-        { title: "Completed", value: ordersData.stats.completedOrders.toLocaleString(), color: "bg-green-50 text-green-600", filterValue: "Completed" },
-        { title: "Cancelled", value: ordersData.stats.canceledOrders.toLocaleString(), color: "bg-red-50 text-red-600", filterValue: "Cancelled" },
+        { title: "Total Orders", value: statsObj.totalOrders.toLocaleString(), color: "bg-primary-light text-primary", filterValue: "All" },
+        { title: "Pending Orders", value: statsObj.pendingOrders.toLocaleString(), color: "bg-warning-50 text-warning", filterValue: "Pending" },
+        { title: "Completed", value: statsObj.completedOrders.toLocaleString(), color: "bg-green-50 text-green-600", filterValue: "Completed" },
+        { title: "Cancelled", value: statsObj.canceledOrders.toLocaleString(), color: "bg-red-50 text-red-600", filterValue: "Cancelled" },
     ]
 
     const handleExport = () => {
         try {
-            const exportData = ordersData.orders.map((o: any) => ({
+            const exportData = orders.map((o: any) => ({
                 "Order ID": o.orderId,
                 "Type": o.orderType,
                 "Shop": o.items?.[0]?.retailer?.businessDetails?.businessName || "N/A",
@@ -248,7 +246,7 @@ function AdminOrdersContent() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-custom text-sm">
-                            {(loading || ordersData.orders.length === 0) ? (
+                            {(loading || orders.length === 0) ? (
                                 <tr>
                                     <td colSpan={10} className="px-6 py-12 text-center text-text-muted">
                                         {loading ? (
@@ -262,7 +260,7 @@ function AdminOrdersContent() {
                                     </td>
                                 </tr>
                             ) : (
-                                ordersData.orders.map((order: any, i: number) => (
+                                orders.map((order: any, i: number) => (
                                     <tr key={order._id} className="hover:bg-background-soft/50 transition-colors">
                                         <td className="px-6 py-4 text-text-muted font-medium">
                                             {(currentPage - 1) * ORDERS_PER_PAGE + i + 1}

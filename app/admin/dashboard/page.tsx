@@ -66,29 +66,25 @@ function TrashIcon(props: React.SVGProps<SVGSVGElement>) {
     )
 }
 
-export default function Dashboard() {
-    const [mounted, setMounted] = useState(false)
-    const [statsData, setStatsData] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+export default function Dashboard() {
+    const queryClient = useQueryClient()
+    const [mounted, setMounted] = useState(false)
+
+    // Using React Query for dashboard stats fetching & caching
+    const { data: statsData, isLoading: loading } = useQuery({
+        queryKey: ["adminDashboardStats"],
+        queryFn: async () => {
+            const res = await adminService.getDashboardStats()
+            return res.data
+        },
+        staleTime: 5 * 60 * 1000, // Dashboard stats are fine to be 5 min stale
+    })
+
     useEffect(() => {
         setMounted(true)
-        fetchData()
     }, [])
-
-    const fetchData = async () => {
-        try {
-            const res = await adminService.getDashboardStats()
-            if (res.success) {
-                setStatsData(res.data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch dashboard stats", error)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     if (!mounted || loading || !statsData) {
         return <div className="space-y-6 animate-pulse text-foreground">

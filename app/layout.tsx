@@ -17,8 +17,7 @@ export const metadata: Metadata = {
   description: "Admin management panel for Shrimpbite inventory and orders.",
 };
 
-import AuthProvider from "@/components/AuthProvider";
-import { Toaster } from "sonner";
+import Providers from "@/components/Providers";
 
 export default function RootLayout({
   children,
@@ -30,10 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster richColors position="top-right" />
-        <AuthProvider>
+        <Providers>
           {children}
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

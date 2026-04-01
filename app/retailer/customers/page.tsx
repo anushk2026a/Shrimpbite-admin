@@ -23,51 +23,52 @@ import {
 import { cn } from "@/lib/utils"
 import retailerService from "@/data/services/retailerService"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function RetailerCustomersPage() {
+    const queryClient = useQueryClient()
     const [mounted, setMounted] = useState(false)
-    const [customersData, setCustomersData] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [showHistoryModal, setShowHistoryModal] = useState(false)
-    const [customerOrders, setCustomerOrders] = useState<any[]>([])
-    const [historyLoading, setHistoryLoading] = useState(false)
+
+    // Using React Query for customer directory & stats
+    const { data: customersData, isLoading: loading } = useQuery({
+        queryKey: ["retailerCustomers"],
+        queryFn: async () => {
+            const res = await retailerService.getCustomers()
+            return res.data
+        },
+        staleTime: 5 * 60 * 1000,
+    })
+
+    // Using React Query for specific customer's purchase history
+    const { data: customerOrders = [], isLoading: historyLoading } = useQuery({
+        queryKey: ["customerOrders", selectedCustomer?.id],
+        queryFn: async () => {
+            if (!selectedCustomer?.id) return []
+            const res = await retailerService.getOrders(selectedCustomer.id)
+            return res.data.orders || []
+        },
+        enabled: showHistoryModal && !!selectedCustomer?.id,
+        staleTime: 5 * 60 * 1000,
+    })
 
     useEffect(() => {
         setMounted(true)
-        fetchData()
     }, [])
 
-    const fetchData = async () => {
-        try {
-            const res = await retailerService.getCustomers()
-            if (res.success) {
-                setCustomersData(res.data)
-                if (res.data.customers && res.data.customers.length > 0) {
-                    setSelectedCustomer(res.data.customers[0])
-                }
-            }
-        } catch (error) {
-            console.error("Failed to fetch customers", error)
-        } finally {
-            setLoading(false)
+    // Set a default selected customer when data is first loaded
+    useEffect(() => {
+        if (customersData?.customers && customersData.customers.length > 0 && !selectedCustomer) {
+            setSelectedCustomer(customersData.customers[0])
         }
-    }
+    }, [customersData, selectedCustomer])
 
-    const fetchPurchaseHistory = async () => {
+    const fetchPurchaseHistory = () => {
         if (!selectedCustomer) return
-        setHistoryLoading(true)
         setShowHistoryModal(true)
-        try {
-            const res = await retailerService.getOrders(selectedCustomer.id)
-            if (res.success) {
-                setCustomerOrders(res.data.orders)
-            }
-        } catch (error) {
-            console.error("Failed to fetch customer history", error)
-        } finally {
-            setHistoryLoading(false)
-        }
+        // No manual fetching needed, useQuery 'enabled' handles it
     }
 
     if (!mounted || loading || !customersData) {

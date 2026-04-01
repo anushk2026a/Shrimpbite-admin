@@ -5,30 +5,27 @@ import { Star, Search, MoreVertical, MessageSquare, ThumbsUp, MessageCircle } fr
 import { cn } from "@/lib/utils"
 import retailerService from "@/data/services/retailerService"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function RetailerReviewsPage() {
+    const queryClient = useQueryClient()
     const [mounted, setMounted] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [reviewData, setReviewData] = useState<any>(null)
     const [filter, setFilter] = useState("All")
     const [searchQuery, setSearchQuery] = useState("")
 
+    // Using React Query for reviews fetching & caching
+    const { data: reviewData, isLoading: loading } = useQuery({
+        queryKey: ["retailerReviews"],
+        queryFn: async () => {
+            const res = await retailerService.getReviews()
+            return res.data
+        },
+        staleTime: 15 * 60 * 1000, // Reviews are static, cache for 15 min
+    })
+
     useEffect(() => {
         setMounted(true)
-        fetchReviews()
     }, [])
-
-    const fetchReviews = async () => {
-        try {
-            const res = await retailerService.getReviews()
-            if (res.success) {
-                setReviewData(res.data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch reviews", error)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     if (!mounted || loading || !reviewData) {
         return (
