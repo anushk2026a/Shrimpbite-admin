@@ -137,6 +137,22 @@ const retailerService = {
     deleteRider: async (riderId) => {
         const response = await apiClient.delete(`/rider/retailer/${riderId}`);
         return response.data;
+    },
+
+    // --- Bank Accounts & Payouts ---
+    getBankAccounts: async () => {
+        const response = await apiClient.get('/retailer/banks');
+        return response.data;
+    },
+
+    addBankAccount: async (bankData) => {
+        const response = await apiClient.post('/retailer/banks', bankData);
+        return response.data;
+    },
+
+    deleteBankAccount: async (bankId) => {
+        const response = await apiClient.delete(`/retailer/banks/${bankId}`);
+        return response.data;
     }
 };
 

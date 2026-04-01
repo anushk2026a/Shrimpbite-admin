@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Wallet, ArrowUpRight, Clock, CheckCircle2, DollarSign, Download, Filter, Plus, X } from "lucide-react"
+import { Wallet, ArrowUpRight, Clock, CheckCircle2, DollarSign, Download, Filter, Plus, X, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 import retailerService from "@/data/services/retailerService"
+import socket from "@/data/api/socket"
+import { toast } from "sonner"
 
 interface Payout {
     _id: string;
@@ -17,13 +20,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function RetailerRevenuePage() {
     const queryClient = useQueryClient()
+    const router = useRouter()
     const [showPayoutModal, setShowPayoutModal] = useState(false)
     const [payoutAmount, setPayoutAmount] = useState("")
-    const [bankDetails, setBankDetails] = useState({
-        bankName: "",
-        accountNumber: "",
-        ifscCode: ""
-    })
+    const [selectedBankId, setSelectedBankId] = useState("")
     const [submitting, setSubmitting] = useState(false)
 
     // Using React Query for revenue stats fetching & caching
@@ -41,6 +41,15 @@ export default function RetailerRevenuePage() {
         staleTime: 5 * 1000, // Frequent updates for money
     })
 
+    // Fetch saved bank accounts
+    const { data: bankAccounts = [], isLoading: loadingBanks } = useQuery({
+        queryKey: ["retailerBankAccounts"],
+        queryFn: async () => {
+            const res = await retailerService.getBankAccounts()
+            return res.bankAccounts || []
+        }
+    })
+
     // Using React Query for payout history fetching & caching
     const { data: payouts = [], isLoading: loadingPayouts } = useQuery<Payout[]>({
         queryKey: ["retailerPayoutHistory"],
@@ -50,19 +59,53 @@ export default function RetailerRevenuePage() {
         staleTime: 2 * 60 * 1000,
     })
 
+    // Sockets for real-time updates
+    useEffect(() => {
+        if (!socket.connected) socket.connect();
+
+        const handlePayoutUpdate = (data: any) => {
+            console.log("💰 [RETAILER SOCKET] Payout Update Received:", data);
+            // Invalidate all revenue-related queries
+            queryClient.invalidateQueries({ queryKey: ["retailerRevenueStats"] });
+            queryClient.invalidateQueries({ queryKey: ["retailerPayoutHistory"] });
+            
+            toast.success("Payout Status Updated!", {
+                description: `Your payout for ₹${data.amount} is now ${data.status.toUpperCase()}.`
+            });
+        };
+
+        socket.on("payoutUpdate", handlePayoutUpdate);
+
+        return () => {
+            socket.off("payoutUpdate", handlePayoutUpdate);
+        };
+    }, [queryClient]);
+
     const handleRequestPayout = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!selectedBankId) {
+            alert("Please select a settlement bank account.")
+            return
+        }
+
+        const chosenBank = bankAccounts.find((b: { _id: string }) => b._id === selectedBankId);
+        
         setSubmitting(true)
         try {
             await retailerService.requestPayout({
                 amount: Number(payoutAmount),
-                bankDetails
+                bankDetails: {
+                    bankName: chosenBank.bankName,
+                    accountNumber: chosenBank.accountNumber,
+                    ifscCode: chosenBank.ifscCode
+                }
             })
             // Invalidate current queries to refresh from server
             queryClient.invalidateQueries({ queryKey: ["retailerRevenueStats"] })
             queryClient.invalidateQueries({ queryKey: ["retailerPayoutHistory"] })
             setShowPayoutModal(false)
             setPayoutAmount("")
+            setSelectedBankId("")
         } catch (error) {
             console.error("Payout request failed:", error)
         } finally {
@@ -79,6 +122,12 @@ export default function RetailerRevenuePage() {
                     <p className="text-text-muted mt-1">Track your earnings and manage your payouts.</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => router.push('/retailer/revenue/bankdetails')}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-border-custom text-text-primary rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-background-soft transition-all shadow-sm"
+                    >
+                        <Building2 size={18} /> Bank Details
+                    </button>
                     <button
                         onClick={() => setShowPayoutModal(true)}
                         className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
@@ -220,33 +269,39 @@ export default function RetailerRevenuePage() {
                             </div>
 
                             <div className="bg-gray-50 rounded-[32px] p-6 space-y-4">
-                                <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50 mb-2">Settlement Bank Details</h3>
-                                <div className="space-y-4">
-                                    <input
-                                        type="text"
+                                <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50 mb-2">Settlement Destination</h3>
+                                
+                                {loadingBanks ? (
+                                    <div className="h-12 w-full bg-gray-200 animate-pulse rounded-2xl"></div>
+                                ) : bankAccounts.length === 0 ? (
+                                    <div className="text-sm font-medium text-gray-500 border border-gray-200 rounded-2xl p-4 text-center">
+                                        No bank accounts found.{' '}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                setShowPayoutModal(false);
+                                                router.push('/retailer/revenue/bankdetails');
+                                            }}
+                                            className="text-primary font-bold hover:underline"
+                                        >
+                                            Add one now
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <select
                                         required
-                                        placeholder="Bank Name"
-                                        value={bankDetails.bankName}
-                                        onChange={e => setBankDetails({ ...bankDetails, bankName: e.target.value })}
-                                        className="w-full bg-transparent border-b-2 border-primary/10 focus:border-primary outline-none py-2 font-bold text-sm transition-all text-primary"
-                                    />
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Account Number"
-                                        value={bankDetails.accountNumber}
-                                        onChange={e => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
-                                        className="w-full bg-transparent border-b-2 border-primary/10 focus:border-primary outline-none py-2 font-bold text-sm transition-all text-primary"
-                                    />
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="IFSC Code"
-                                        value={bankDetails.ifscCode}
-                                        onChange={e => setBankDetails({ ...bankDetails, ifscCode: e.target.value })}
-                                        className="w-full bg-transparent border-b-2 border-primary/10 focus:border-primary outline-none py-2 font-bold text-sm transition-all text-primary"
-                                    />
-                                </div>
+                                        value={selectedBankId}
+                                        onChange={e => setSelectedBankId(e.target.value)}
+                                        className="w-full bg-white border-2 border-primary/10 focus:border-primary outline-none py-3 px-4 rounded-xl font-bold text-sm transition-all text-primary shadow-sm"
+                                    >
+                                        <option value="" disabled>Select a saved bank account...</option>
+                                        {bankAccounts.map((bank: any) => (
+                                            <option key={bank._id} value={bank._id}>
+                                                {bank.bankName} - A/C ending in {bank.accountNumber?.slice(-4) || ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                         </div>
 

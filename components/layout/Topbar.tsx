@@ -564,7 +564,12 @@ export default function Topbar() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between gap-2 mb-1">
-                                                            <p className={cn("text-xs font-bold truncate", n.isRead ? "text-text" : "text-primary")}>
+                                                            <p className={cn(
+                                                                "text-xs font-bold truncate", 
+                                                                !n.isRead && (n.type === "Warning" || n.type === "Error") ? "text-red-600 font-black" :
+                                                                !n.isRead && n.type === "Rider" ? "text-blue-600" :
+                                                                n.isRead ? "text-text" : "text-primary"
+                                                            )}>
                                                                 {n.title}
                                                             </p>
                                                             <span className="text-[10px] text-text-muted whitespace-nowrap flex items-center gap-1 font-medium">

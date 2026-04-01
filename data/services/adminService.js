@@ -96,6 +96,11 @@ const adminService = {
         return response.data;
     },
 
+    rejectPayout: async (payoutId, adminComment = "") => {
+        const response = await apiClient.put(`/payout/reject/${payoutId}`, { adminComment });
+        return response.data;
+    },
+
     // Communication Management
     sendBulkNotification: async (title, body, targetType = 'all') => {
         const response = await apiClient.post("/communication/notify-all", { title, body, targetType });

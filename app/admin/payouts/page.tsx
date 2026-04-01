@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Wallet, CheckCircle, XCircle, Clock, Search, Filter, Download, Eye, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
+import socket from "@/data/api/socket"
+import { toast } from "sonner"
 
 interface Payout {
     _id: string;
@@ -55,6 +57,29 @@ export default function AdminPayoutsPage() {
         setCurrentPage(1)
     }, [searchTerm, filterStatus])
 
+    // Sockets for real-time updates
+    useEffect(() => {
+        // Connect if not already
+        if (!socket.connected) socket.connect();
+
+        // Join admin room
+        socket.emit("join", "admin");
+
+        const handlePayoutUpdate = (data: any) => {
+            console.log("💰 [SOCKET] Payout Update Received:", data);
+            queryClient.invalidateQueries({ queryKey: ["adminPayouts"] });
+            toast.success("New Payout Update Received!", {
+                description: `A payout request status has been updated in real-time.`
+            });
+        };
+
+        socket.on("payoutUpdate", handlePayoutUpdate);
+
+        return () => {
+            socket.off("payoutUpdate", handlePayoutUpdate);
+        };
+    }, [queryClient]);
+
     const handleApprove = async () => {
         if (!selectedPayout || !transactionId) return
         setActionLoading(true)
@@ -67,6 +92,23 @@ export default function AdminPayoutsPage() {
             setTransactionId("")
         } catch (error) {
             console.error("Approval failed:", error)
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    const handleReject = async () => {
+        if (!selectedPayout) return
+        setActionLoading(true)
+        try {
+            await adminService.rejectPayout(selectedPayout._id)
+            queryClient.invalidateQueries({ queryKey: ["adminPayouts"] })
+            setShowModal(false)
+            setSelectedPayout(null)
+            toast.success("Payout request rejected.")
+        } catch (error) {
+            console.error("Rejection failed:", error)
+            toast.error("Failed to reject payout.")
         } finally {
             setActionLoading(false)
         }
@@ -355,8 +397,12 @@ export default function AdminPayoutsPage() {
                                         >
                                             {actionLoading ? "Processing..." : "Confirm & Approve Settlement"}
                                         </button>
-                                        <button className="px-6 py-4 rounded-2xl bg-red-50 text-red-600 font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all border border-red-100">
-                                            Reject
+                                        <button 
+                                            onClick={handleReject}
+                                            disabled={actionLoading}
+                                            className="px-6 py-4 rounded-2xl bg-red-50 text-red-600 font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all border border-red-100 disabled:opacity-50"
+                                        >
+                                            {actionLoading ? "..." : "Reject"}
                                         </button>
                                     </div>
                                 </div>
