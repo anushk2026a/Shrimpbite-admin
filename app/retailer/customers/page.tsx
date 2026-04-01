@@ -173,7 +173,7 @@ export default function RetailerCustomersPage() {
                                     <th className="px-6 py-4">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y text-sm">
+                            <tbody className="divide-y divide-border-custom text-sm">
                                 {filteredCustomers.length === 0 ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
@@ -207,7 +207,7 @@ export default function RetailerCustomersPage() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 font-bold text-primary">₹{c.spend}</td>
+                                            <td className="px-6 py-4 font-bold text-primary truncate max-w-[120px]" title={`₹${c.spend}`}>₹{c.spend}</td>
                                             <td className="px-6 py-4">
                                                 <span className={cn(
                                                     "px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 w-fit",
@@ -233,9 +233,9 @@ export default function RetailerCustomersPage() {
                                 <img src={selectedCustomer.image} alt={selectedCustomer.name} className="w-full h-full object-cover" />
                             </div>
                             <h3 className="font-bold text-lg">{selectedCustomer.name}</h3>
-                            <p className="text-xs text-text-muted">{selectedCustomer.email}</p>
+                            <p className="text-xs text-text-muted">{!selectedCustomer.email || selectedCustomer.email === "N/A" ? selectedCustomer.phone : selectedCustomer.email}</p>
                         </div>
-                        <div className="space-y-4 pt-4 border-t">
+                        <div className="space-y-4 pt-4 border-t border-border-custom">
                             <div className="flex items-center gap-3 text-sm">
                                 <div className="p-2 rounded-lg bg-background-soft">
                                     <Phone size={14} className="text-text-muted" />
@@ -243,13 +243,23 @@ export default function RetailerCustomersPage() {
                                 <span className="font-medium">{selectedCustomer.phone}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50">
-                                    <p className="text-[10px] text-text-muted uppercase font-bold mb-1">Total Orders</p>
-                                    <p className="font-bold text-lg">{selectedCustomer.orderCount}</p>
+                                <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50 overflow-hidden min-w-0">
+                                    <p className="text-[10px] text-text-muted uppercase font-bold mb-1 truncate">Total Orders</p>
+                                    <p className={cn(
+                                        "font-bold truncate",
+                                        selectedCustomer.orderCount.toString().length > 6 ? "text-sm" : "text-lg"
+                                    )} title={selectedCustomer.orderCount.toString()}>
+                                        {selectedCustomer.orderCount}
+                                    </p>
                                 </div>
-                                <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50">
-                                    <p className="text-[10px] text-text-muted uppercase font-bold mb-1">Total Spent</p>
-                                    <p className="font-bold text-lg text-primary">₹{selectedCustomer.spend}</p>
+                                <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50 overflow-hidden min-w-0">
+                                    <p className="text-[10px] text-text-muted uppercase font-bold mb-1 truncate">Total Spent</p>
+                                    <p className={cn(
+                                        "font-bold text-primary truncate",
+                                        `₹${selectedCustomer.spend}`.length > 8 ? "text-sm" : "text-lg"
+                                    )} title={`₹${selectedCustomer.spend}`}>
+                                        ₹{selectedCustomer.spend}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -315,7 +325,7 @@ export default function RetailerCustomersPage() {
                                                 <th className="px-6 py-4 text-center">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y text-sm">
+                                        <tbody className="divide-y divide-border-custom text-sm">
                                             {customerOrders.map((order: any) => (
                                                 <tr key={order.id} className="hover:bg-background-soft/30 transition-colors">
                                                     <td className="px-6 py-4 font-mono text-xs font-bold text-text-muted">#{order.id.split('-').slice(-2).join('-')}</td>
