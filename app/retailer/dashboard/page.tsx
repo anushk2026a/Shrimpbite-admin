@@ -123,8 +123,8 @@ export default function RetailerDashboard() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Branded Header Console */}
-            <motion.div 
-                animate={{ 
+            <motion.div
+                animate={{
                     boxShadow: shopActive ? "0 20px 40px -10px rgba(108, 197, 29, 0.2)" : "0 8px 30px rgba(0,0,0,0.04)",
                     borderColor: shopActive ? "rgba(108, 197, 29, 0.3)" : "rgba(226, 232, 240, 0.8)"
                 }}
@@ -133,7 +133,7 @@ export default function RetailerDashboard() {
                 {/* Decorative Brand Shapes */}
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#FF6B35] via-[#FF3B30] to-[#6CC51D] opacity-80" />
                 <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
-                
+
                 <div className="relative z-10 flex items-center gap-6">
                     <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-xl shadow-green-500/20 group-hover:scale-110 transition-transform duration-500">
                         <TrendingUp size={32} />
@@ -179,7 +179,7 @@ export default function RetailerDashboard() {
                                                 transition={{ duration: 2 + Math.random() * 2, ease: [0.4, 0, 0.2, 1], delay: Math.random() * 0.5 }}
                                                 className={cn(
                                                     "absolute w-3 h-3 rounded-sm shadow-[0_0_15px_rgba(108,197,29,0.5)]",
-                                                    i % 3 === 0 ? "bg-primary" : i % i === 1 ? "bg-[#FF6B35]" : "bg-[#FF3B30]"
+                                                    i % 3 === 0 ? "bg-primary" : i % 3 === 1 ? "bg-[#FF6B35]" : "bg-[#FF3B30]"
                                                 )}
                                             />
                                         ))}
@@ -224,7 +224,7 @@ export default function RetailerDashboard() {
                     )}>
                         {/* Subtle inner corner accent */}
                         <div className={cn("absolute top-0 right-0 w-16 h-16 opacity-5 -mr-4 -mt-4 rounded-full", stat.color)} />
-                        
+
                         <div className="flex items-center justify-between mb-6 relative">
                             <div className={cn("p-4 rounded-2xl border transition-transform duration-500 group-hover:rotate-[10deg]", stat.color)}>
                                 <stat.icon size={28} />
