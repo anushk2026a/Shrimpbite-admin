@@ -457,11 +457,18 @@ function OrdersContent() {
                                                 <div className="flex flex-col gap-1">
                                                     <span className="truncate block">{order.product}</span>
                                                     {order.subscriptionDetails && (
-                                                        <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded w-fit">
-                                                            {order.subscriptionDetails.frequency === "Weekly"
-                                                                ? `Weekly: ${order.subscriptionDetails.customDays?.join(", ") || "No days"}`
-                                                                : order.subscriptionDetails.frequency}
-                                                        </span>
+                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                            <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded w-fit border border-primary/10">
+                                                                {order.subscriptionDetails.frequency === "Weekly"
+                                                                    ? `Weekly: ${order.subscriptionDetails.customDays?.join(", ") || "No days"}`
+                                                                    : order.subscriptionDetails.frequency}
+                                                            </span>
+                                                            {order.subscriptionDetails.isLastDelivery && (
+                                                                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded w-fit border border-red-100 flex items-center gap-1 animate-pulse">
+                                                                    🚩 FINAL DELIVERY
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </td>

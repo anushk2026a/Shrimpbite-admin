@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Fish, Package, ChevronRight, CheckCircle2, AlertCircle, Clock, Printer } from "lucide-react"
+import { Fish, Package, ChevronRight, CheckCircle2, AlertCircle, Clock, Printer, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import retailerService from "@/data/services/retailerService"
 import socket from "@/data/api/socket"
@@ -28,6 +28,8 @@ interface DetailedItem {
     quantity: number;
     unit: string;
     status: string;
+    frequency: string;
+    customDays?: string[];
 }
 
 interface PrepData {
@@ -40,8 +42,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 export default function DailyPrepListPage() {
     const queryClient = useQueryClient()
     const [selectedDate, setSelectedDate] = useState(new Date())
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
-    // Using React Query for prep list fetching & caching
     const { data: prepData, isLoading } = useQuery<PrepData>({
         queryKey: ["retailerPrepList", selectedDate.toDateString()],
         queryFn: async () => {
@@ -53,6 +56,18 @@ export default function DailyPrepListPage() {
 
     const prepItems = prepData?.summary || []
     const detailedItems = prepData?.detailed || []
+
+    // Pagination Logic
+    const totalPages = Math.ceil(detailedItems.length / itemsPerPage);
+    const paginatedItems = detailedItems.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Reset pagination on date change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedDate]);
 
     useEffect(() => {
         const userId = localStorage.getItem("userId")
@@ -109,12 +124,12 @@ export default function DailyPrepListPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-primary uppercase">
-                        {isToday ? "Daily Prep List" : isFuture ? "Future Prep Prediction" : "Historical Prep List"}
+                        {isToday ? "Subscription Prep" : isFuture ? "Future Prep Prediction" : "Historical Prep"}
                     </h1>
                     <p className="text-text-muted mt-1 font-bold">
                         {isFuture 
                             ? `Predicted inventory for ${selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}`
-                            : "Granular packing requirements for today's subscription & pre-orders."
+                            : "Scheduled subscription orders requiring preparation for today."
                         }
                     </p>
                 </div>
@@ -147,15 +162,15 @@ export default function DailyPrepListPage() {
             {/* Prep Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Products</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Subscriptions</p>
                     <h3 className="text-3xl font-black text-primary">{prepItems.length}</h3>
                 </div>
                 <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Prep Weight</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Scheduled Weight</p>
                     <h3 className="text-3xl font-black text-primary">{totalWeight} <span className="text-sm">kg</span></h3>
                 </div>
                 <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Items In Progress</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">In Progress</p>
                     <h3 className="text-3xl font-black text-orange-600">{totalOrders - readyOrders}</h3>
                 </div>
                 <div className={cn(
@@ -169,12 +184,12 @@ export default function DailyPrepListPage() {
                 </div>
             </div>
 
-            {/* Granular Table View */}
+            {/* Table View */}
             <div className="bg-white rounded-[40px] border-2 border-gray-100 shadow-sm overflow-hidden mb-20">
                 <div className="p-8 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                     <div>
-                        <h3 className="text-xl font-black text-primary tracking-tight uppercase">Packing List</h3>
-                        <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">Line-by-line item requirements</p>
+                        <h3 className="text-xl font-black text-primary tracking-tight uppercase">Subscription Packing List</h3>
+                        <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">Daily scheduled fulfillments only</p>
                     </div>
                 </div>
 
@@ -184,30 +199,30 @@ export default function DailyPrepListPage() {
                             <tr className="bg-gray-50/30">
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Order ID</th>
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Product Details</th>
-                                <th className="px-8 py-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Mode</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Frequency</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Quantity</th>
                                 <th className="px-8 py-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {detailedItems.length === 0 ? (
+                            {paginatedItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center text-text-muted">
                                             <Package size={48} className="opacity-10 mb-4" />
-                                            <p className="font-bold text-sm">No prep requirements for this date.</p>
+                                            <p className="font-bold text-sm text-gray-400">No scheduled subscriptions for this date.</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                detailedItems.map((item) => (
+                                paginatedItems.map((item) => (
                                     <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
                                         <td className="px-8 py-6">
                                             <span className={cn(
                                                 "font-black text-sm tracking-tighter uppercase",
                                                 item.orderId === "WAITING-BILLING" ? "text-orange-500 italic" : "text-primary"
                                             )}>
-                                                #{item.orderId}
+                                                {item.orderId === "WAITING-BILLING" ? "PENDING" : `#${item.orderId}`}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
@@ -221,15 +236,16 @@ export default function DailyPrepListPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-center">
-                                            {item.orderType === "Subscription" ? (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-lg text-[9px] font-black uppercase tracking-wider border border-green-100">
-                                                    ↻ Sub
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-[9px] font-black uppercase tracking-wider border border-green-100">
+                                                    ↻ {item.frequency}
                                                 </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-wider border border-blue-100">
-                                                    1x One-off
-                                                </span>
-                                            )}
+                                                {item.frequency === "Weekly" && item.customDays && (
+                                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter text-wrap max-w-[100px]">
+                                                        {item.customDays.join(", ")}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <span className="font-black text-lg tracking-tighter text-primary">
@@ -254,6 +270,37 @@ export default function DailyPrepListPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="p-8 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between">
+                        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                            Showing page {currentPage} of {totalPages}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className={cn(
+                                    "p-2 rounded-xl border border-gray-200 transition-all",
+                                    currentPage === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-primary hover:text-white bg-white shadow-sm"
+                                )}
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className={cn(
+                                    "p-2 rounded-xl border border-gray-200 transition-all",
+                                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "hover:bg-primary hover:text-white bg-white shadow-sm"
+                                )}
+                            >
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
