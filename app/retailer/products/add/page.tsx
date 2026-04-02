@@ -47,11 +47,40 @@ export default function AddProductPage() {
         description: "",
         category: "",
         price: "" as string | number,
+        variants: [] as { label: string, price: number, weightValue: number, weightUnit: string, weightInKg: number }[],
         stock: 0,
         stockStatus: "In Stock" as "In Stock" | "Out of Stock" | "Low Stock",
         status: "Published" as "Published" | "Draft",
         images: [] as string[]
     })
+
+    const addVariant = () => {
+        setFormData(prev => ({
+            ...prev,
+            variants: [...prev.variants, { label: "", price: 0, weightValue: 1, weightUnit: "Kg", weightInKg: 1 }]
+        }))
+    }
+
+    const removeVariant = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            variants: prev.variants.filter((_, i) => i !== index)
+        }))
+    }
+
+    const updateVariant = (index: number, updates: any) => {
+        const newVariants = [...formData.variants]
+        newVariants[index] = { ...newVariants[index], ...updates }
+
+        // Recalculate weightInKg whenever weightValue or weightUnit changes
+        if (updates.weightValue !== undefined || updates.weightUnit !== undefined) {
+            const val = updates.weightValue ?? newVariants[index].weightValue
+            const unit = updates.weightUnit ?? newVariants[index].weightUnit
+            newVariants[index].weightInKg = unit === "Grams" ? val / 1000 : val
+        }
+
+        setFormData({ ...formData, variants: newVariants })
+    }
 
     useEffect(() => {
         fetchCategories()
@@ -109,8 +138,18 @@ export default function AddProductPage() {
         const newErrors: Record<string, string> = {}
         if (!formData.name) newErrors.name = "Product name is required"
         if (!formData.description) newErrors.description = "Description is required"
-        if (!formData.price || Number(formData.price) <= 0) newErrors.price = "Valid price is required"
-        // if (!formData.category) newErrors.category = "Category is required"
+
+        // If no variants, check for base price
+        if (formData.variants.length === 0) {
+            if (!formData.price || Number(formData.price) <= 0) newErrors.price = "Valid price or weight options required"
+        } else {
+            // Validate variants
+            formData.variants.forEach((v, i) => {
+                if (!v.label) newErrors[`variant_${i}_label`] = "Label is required"
+                if (v.price <= 0) newErrors[`variant_${i}_price`] = "Price required"
+            })
+        }
+
         if (formData.images.length === 0) newErrors.images = "At least one image is required"
 
         setErrors(newErrors)
@@ -222,31 +261,104 @@ export default function AddProductPage() {
                         </div>
                     </section>
 
-                    {/* Pricing */}
-                    <section className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
-                        <h3 className="text-lg font-bold">Pricing</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold">Base Price (₹) *</label>
-                                <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold">₹</div>
-                                    <input
-                                        type="number"
-                                        value={formData.price}
-                                        onChange={e => {
-                                            setFormData({ ...formData, price: e.target.value });
-                                            if (errors.price) setErrors({ ...errors, price: "" });
-                                        }}
-                                        placeholder="0.00"
-                                        className={cn(
-                                            "w-full pl-8 pr-4 py-2.5 rounded-lg bg-background-soft border-2 transition-all outline-none text-sm font-bold",
-                                            errors.price ? "border-red-500 bg-red-50/10 focus:border-red-500" : "border-transparent focus:bg-white focus:border-primary"
-                                        )}
-                                    />
-                                </div>
-                                {errors.price && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.price}</p>}
+                    {/* Pricing & Weight Options */}
+                    <section className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold">Pricing & Weight Options</h3>
+                                <p className="text-xs text-text-muted">Add multiple weight options for your customers to choose from.</p>
                             </div>
+                            <button
+                                onClick={addVariant}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-all"
+                            >
+                                <Plus size={14} /> Add Option
+                            </button>
                         </div>
+
+                        {formData.variants.length > 0 ? (
+                            <div className="space-y-3">
+                                {formData.variants.map((variant, index) => (
+                                    <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 bg-background-soft rounded-xl relative group">
+                                        <div className="md:col-span-4 space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-text-muted px-1">Label (e.g. 500 Grams)</label>
+                                            <input
+                                                type="text"
+                                                value={variant.label}
+                                                onChange={e => updateVariant(index, { label: e.target.value })}
+                                                placeholder="Packet Label"
+                                                className="w-full px-3 py-2 rounded-lg bg-white border-transparent text-sm focus:border-primary transition-all outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-text-muted px-1">Price (₹)</label>
+                                            <input
+                                                type="number"
+                                                value={variant.price}
+                                                onChange={e => updateVariant(index, { price: Number(e.target.value) })}
+                                                placeholder="Price"
+                                                className="w-full px-3 py-2 rounded-lg bg-white border-transparent text-sm font-bold focus:border-primary transition-all outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-text-muted px-1">Weight</label>
+                                            <div className="flex items-center bg-white rounded-lg overflow-hidden border-transparent focus-within:border-primary border-2 transition-all">
+                                                <input
+                                                    type="number"
+                                                    value={variant.weightValue}
+                                                    onChange={e => updateVariant(index, { weightValue: Number(e.target.value) })}
+                                                    className="w-full px-3 py-1.5 text-sm outline-none border-none"
+                                                />
+                                                <select
+                                                    value={variant.weightUnit}
+                                                    onChange={e => updateVariant(index, { weightUnit: e.target.value })}
+                                                    className="bg-background-soft px-2 py-1.5 text-xs font-bold border-none outline-none cursor-pointer"
+                                                >
+                                                    <option value="Grams">g</option>
+                                                    <option value="Kg">kg</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="md:col-span-2 flex items-end justify-center pb-1">
+                                            <button
+                                                onClick={() => removeVariant(index)}
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="p-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center bg-background-soft/30">
+                                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm">
+                                        <Info size={24} className="text-text-muted" />
+                                    </div>
+                                    <p className="text-sm font-medium text-text-muted">No weight options added yet.</p>
+                                    <p className="text-xs text-text-muted mt-1 max-w-[250px]">Click "Add Option" to create variations like 250g, 500g, or 1kg.</p>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold">Single Base Price (₹) *</label>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold">₹</div>
+                                        <input
+                                            type="number"
+                                            value={formData.price}
+                                            onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                            placeholder="0.00"
+                                            className={cn(
+                                                "w-full pl-8 pr-4 py-2.5 rounded-lg bg-background-soft border-2 transition-all outline-none text-sm font-bold",
+                                                errors.price ? "border-red-500 bg-red-50/10 focus:border-red-500" : "border-transparent focus:bg-white focus:border-primary"
+                                            )}
+                                        />
+                                    </div>
+                                    {errors.price && <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={10} /> {errors.price}</p>}
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     {/* Inventory */}
