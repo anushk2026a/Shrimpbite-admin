@@ -29,6 +29,7 @@ interface Product {
     goldPrice: number;
     category: { _id: string; name: string };
     images: string[];
+    variants?: { label: string; price: number; weightInKg: number }[];
     stock: number;
     stockStatus: string;
     status: string;
@@ -193,7 +194,16 @@ export default function RetailerProductsPage() {
                                             )}>{p.stockStatus}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-black text-primary">₹{p.price}</p>
+                                            {p.variants && p.variants.length > 0 ? (
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-text-muted font-bold uppercase tracking-widest">From</span>
+                                                    <p className="font-black text-primary">
+                                                        ₹{Math.min(...p.variants.map((v) => v.price))}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <p className="font-black text-primary">₹{p.price}</p>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={cn(

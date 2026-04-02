@@ -26,6 +26,7 @@ interface DetailedItem {
     productId: string;
     productName: string;
     quantity: number;
+    weightLabel?: string;
     unit: string;
     status: string;
     frequency: string;
@@ -233,6 +234,11 @@ export default function DailyPrepListPage() {
                                                 </div>
                                                 <span className="font-black text-primary/80 text-sm tracking-tight uppercase flex items-center gap-2">
                                                     {item.productName}
+                                                    {item.weightLabel && (
+                                                        <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                                                            {item.weightLabel}
+                                                        </span>
+                                                    )}
                                                     {item.isLastDelivery && (
                                                         <span className="text-[9px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 flex items-center gap-1 animate-pulse">
                                                             🚩 FINAL DELIVERY

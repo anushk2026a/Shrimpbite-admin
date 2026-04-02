@@ -130,7 +130,11 @@ function OrdersContent() {
                     } else {
                         const newOrder = {
                             id: data.orderId,
-                            product: data.data?.items?.map((i: any) => i.product?.name || "Product").join(", ") || (data.data?.product || "New Order"),
+                            product: data.data?.items?.map((i: any) => {
+                                    const name = i.product?.name || "Product";
+                                    const weight = i.weightLabel ? ` (${i.weightLabel})` : "";
+                                    return `${i.quantity}x ${name}${weight}`;
+                                }).join(", ") || (data.data?.product || "New Order"),
                             date: new Date(data.data?.createdAt || new Date()).toLocaleString("en-IN", {
                                 timeZone: "Asia/Kolkata",
                                 day: "2-digit",
