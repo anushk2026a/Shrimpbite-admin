@@ -333,74 +333,90 @@ export default function AdminPayoutsPage() {
 
             {/* Modal */}
             {showModal && selectedPayout && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                            <h2 className="text-2xl font-black text-primary uppercase tracking-tight">Payout Details</h2>
-                            <button onClick={() => setShowModal(false)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors">
-                                <XCircle size={24} className="text-text-muted" />
+                <div 
+                    className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div 
+                        className="bg-white rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border border-border-custom"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#FF6B35]/5 to-transparent">
+                            <h2 className="text-2xl font-black text-[#FF6B35] uppercase tracking-tight italic">Payout Details</h2>
+                            <button 
+                                onClick={() => setShowModal(false)} 
+                                className="w-10 h-10 flex items-center justify-center hover:bg-[#FF6B35]/10 rounded-full transition-all group"
+                            >
+                                <XCircle size={24} className="text-text-muted group-hover:text-[#FF6B35]" />
                             </button>
                         </div>
 
                         <div className="p-8 space-y-8">
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50">Retailer Info</h3>
-                                    <div className="bg-background-soft p-4 rounded-3xl">
-                                        <p className="font-black text-primary">{selectedPayout.retailer.name}</p>
-                                        <p className="text-sm text-text-muted">{selectedPayout.retailer.email}</p>
-                                        <p className="text-sm text-text-muted mt-2 font-bold">{selectedPayout.retailer.businessDetails?.businessName}</p>
+                                    <h3 className="text-xs font-black text-[#FF6B35] uppercase tracking-widest opacity-70">Retailer Info</h3>
+                                    <div className="bg-background-soft p-5 rounded-3xl border border-[#FF6B35]/10">
+                                        <p className="font-black text-lg text-primary">{selectedPayout.retailer.name}</p>
+                                        <p className="text-sm text-text-muted font-medium">{selectedPayout.retailer.email}</p>
+                                        <p className="text-sm text-text-muted mt-3 font-black uppercase tracking-tight">{selectedPayout.retailer.businessDetails?.businessName}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50">Bank Details</h3>
-                                    <div className="bg-background-soft p-4 rounded-3xl">
-                                        <p className="text-sm"><strong>Bank:</strong> {selectedPayout.bankDetails?.bankName || 'N/A'}</p>
-                                        <p className="text-sm"><strong>Acc:</strong> {selectedPayout.bankDetails?.accountNumber || 'N/A'}</p>
-                                        <p className="text-sm"><strong>IFSC:</strong> {selectedPayout.bankDetails?.ifscCode || 'N/A'}</p>
+                                    <h3 className="text-xs font-black text-[#FF6B35] uppercase tracking-widest opacity-70">Bank Details</h3>
+                                    <div className="bg-background-soft p-5 rounded-3xl border border-[#FF6B35]/10">
+                                        <p className="text-sm text-foreground mb-1"><strong className="text-[#FF6B35]/70">Bank:</strong> <span className="font-bold">{selectedPayout.bankDetails?.bankName || 'N/A'}</span></p>
+                                        <p className="text-sm text-foreground mb-1"><strong className="text-[#FF6B35]/70">Acc:</strong> <span className="font-bold">{selectedPayout.bankDetails?.accountNumber || 'N/A'}</span></p>
+                                        <p className="text-sm text-foreground"><strong className="text-[#FF6B35]/70">IFSC:</strong> <span className="font-bold">{selectedPayout.bankDetails?.ifscCode || 'N/A'}</span></p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 flex items-center justify-between">
+                             <div className="p-8 rounded-[36px] bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 flex items-center justify-between shadow-inner">
                                 <div>
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Settlement Amount</p>
-                                    <h2 className="text-4xl font-black text-primary">₹{selectedPayout.amount.toLocaleString()}</h2>
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2 opacity-60">Settlement Amount</p>
+                                    <h2 className="text-3xl font-black text-primary italic">₹{selectedPayout.amount.toLocaleString()}</h2>
                                 </div>
                                 <div className="text-right">
-                                    <span className={cn(
-                                        "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest",
-                                        selectedPayout.status === 'Approved' ? "bg-green-100 text-green-600" : "bg-amber-100 text-amber-600"
+                                    <div className={cn(
+                                        "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
+                                        selectedPayout.status === 'Approved' ? "bg-green-100 text-green-600 border-green-200" : 
+                                        selectedPayout.status === 'Pending' ? "bg-amber-100 text-amber-600 border-amber-200" :
+                                        "bg-red-100 text-red-600 border-red-200"
                                     )}>
                                         {selectedPayout.status}
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {selectedPayout.status === 'Pending' && (
-                                <div className="space-y-4 pt-4">
-                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest opacity-50">Settlement Verification</h3>
+                             {selectedPayout.status === 'Pending' && (
+                                <div className="space-y-5 pt-4">
+                                    <h3 className="text-xs font-black text-[#FF6B35] uppercase tracking-widest opacity-70">Settlement Verification</h3>
                                     <div className="relative">
                                         <input
                                             type="text"
                                             placeholder="Enter Bank Transaction ID / UTR Number..."
                                             value={transactionId}
                                             onChange={(e) => setTransactionId(e.target.value)}
-                                            className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-primary/20 outline-none transition-all font-bold placeholder:font-medium"
+                                            className="w-full px-8 py-5 rounded-[24px] bg-gray-50 border-2 border-transparent focus:border-[#FF6B35]/20 focus:bg-white outline-none transition-all font-black text-primary placeholder:font-medium shadow-inner"
                                         />
                                     </div>
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-4">
                                         <button
                                             disabled={!transactionId || actionLoading}
                                             onClick={handleApprove}
-                                            className="grow bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
+                                            className="grow bg-gradient-to-r from-[#FF6B35] to-[#FF3B30] text-white py-5 rounded-[24px] font-black uppercase tracking-[0.2em] text-xs hover:shadow-2xl hover:shadow-orange-500/40 transition-all shadow-xl shadow-orange-500/20 disabled:opacity-50 group flex items-center justify-center gap-2"
                                         >
-                                            {actionLoading ? "Processing..." : "Confirm & Approve Settlement"}
+                                            {actionLoading ? "Processing..." : (
+                                                <>
+                                                    <Check size={18} />
+                                                    Confirm & Approve Settlement
+                                                </>
+                                            )}
                                         </button>
                                         <button 
                                             onClick={handleReject}
                                             disabled={actionLoading}
-                                            className="px-6 py-4 rounded-2xl bg-red-50 text-red-600 font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all border border-red-100 disabled:opacity-50"
+                                            className="px-8 py-5 rounded-[24px] bg-red-50 text-red-600 font-black uppercase tracking-widest text-[10px] hover:bg-red-600 hover:text-white transition-all border border-red-100 disabled:opacity-50"
                                         >
                                             {actionLoading ? "..." : "Reject"}
                                         </button>

@@ -10,6 +10,7 @@ import {
     MoreVertical,
     Plus,
     Filter,
+    RefreshCw,
 } from "lucide-react"
 import {
     XAxis,
@@ -146,14 +147,45 @@ export default function Dashboard() {
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#FF6B35] via-[#FF3B30] to-[#6CC51D] opacity-80" />
                 <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FF6B35]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#FF6B35]/10 transition-colors duration-700" />
                 
-                <div className="relative z-10 flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-xl shadow-green-500/20 group-hover:scale-110 transition-transform duration-500">
-                        <TrendingUp size={32} />
+                <div className="relative z-10 flex items-center justify-between w-full">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-xl shadow-green-500/20 group-hover:scale-110 transition-transform duration-500">
+                            <TrendingUp size={32} />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Platform Overview</h1>
+                            <p className="text-text-muted mt-1 font-bold text-sm tracking-tight opacity-70">Welcome back, Admin. Monitoring all live metrics.</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Platform Overview</h1>
-                        <p className="text-text-muted mt-1 font-bold text-sm tracking-tight opacity-70">Welcome back, Admin. Monitoring all live metrics.</p>
-                    </div>
+
+                    {/* Manual Sync Trigger */}
+                    <button 
+                        onClick={async () => {
+                            const confirmSync = confirm("This will manually trigger order generation for today. Proceed?");
+                            if (!confirmSync) return;
+                            
+                            try {
+                                const toastId = "sync-toast";
+                                // Correcting URL to avoid double /api suffix
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://api.shrimpbite.in/api"}/cron/generate-subscription-orders`, {
+                                    headers: { "x-cron-secret": "shrimpbite_cron_2026_secure" }
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    alert(`Success! Created ${data.stats.created} orders, Skipped ${data.stats.skipped}.`);
+                                    window.location.reload();
+                                } else {
+                                    alert(`Failed: ${data.message}`);
+                                }
+                            } catch (err) {
+                                alert("Failed to connect to sync service.");
+                            }
+                        }}
+                        className="flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm border border-primary/20"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                        Sync Daily Orders
+                    </button>
                 </div>
             </div>
 

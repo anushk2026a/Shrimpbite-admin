@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Search, Clock, Eye, X, User, Mail, Phone, MapPin, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import adminService from "@/data/services/adminService"
@@ -27,12 +28,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function UsersPage() {
     const queryClient = useQueryClient()
-    const [searchTerm, setSearchTerm] = useState("")
+    const searchParams = useSearchParams()
+    const highlightId = searchParams.get("highlight")
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
     const [selectedUser, setSelectedUser] = useState<AppUser | null>(null)
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
     const limit = 10
+
+    // Sync state with search params (handles navigation between search results)
+    useEffect(() => {
+        const search = searchParams.get("search")
+        if (search !== null) setSearchTerm(search)
+    }, [searchParams])
 
     // Using React Query for users fetching & caching
     const { data: usersData, isLoading: loading } = useQuery({
@@ -67,8 +76,16 @@ export default function UsersPage() {
                                 placeholder="Search by name, email, phone..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-1.5 rounded-lg bg-background-soft border-transparent text-sm outline-none w-80"
+                                className="pl-9 pr-10 py-1.5 rounded-lg bg-background-soft border-transparent text-sm outline-none w-80 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                             />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors p-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -88,7 +105,13 @@ export default function UsersPage() {
                             </thead>
                             <tbody className="divide-y divide-border-custom text-sm">
                                 {users.map((user: AppUser) => (
-                                    <tr key={user._id} className="hover:bg-background-soft/50 transition-colors">
+                                    <tr 
+                                        key={user._id} 
+                                        className={cn(
+                                            "hover:bg-background-soft/50 transition-colors",
+                                            highlightId === user._id && "animate-highlight-pulse"
+                                        )}
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">

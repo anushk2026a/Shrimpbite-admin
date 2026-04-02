@@ -150,7 +150,7 @@ export default function Topbar() {
                         title: u.fullName || u.name,
                         subtitle: u.email || u.phoneNumber,
                         type: 'user',
-                        href: `/admin/users?search=${u.email || u.phoneNumber}`
+                        href: `/admin/users?search=${encodeURIComponent(u.fullName || u.name)}&highlight=${u._id}`
                     }));
                 }
 
@@ -161,7 +161,7 @@ export default function Topbar() {
                         title: `Order #${o.orderId || o._id.slice(-6)}`,
                         subtitle: `${o.items?.[0]?.product?.name || 'Order'} - ${o.status}`,
                         type: 'order',
-                        href: `/admin/orders?orderId=${o.orderId || o._id}`
+                        href: `/admin/orders?orderId=${encodeURIComponent(o.orderId || o._id)}&highlight=${o._id}`
                     }));
                 }
 
@@ -172,7 +172,7 @@ export default function Topbar() {
                         title: r.businessDetails?.businessName || r.name,
                         subtitle: r.email || r.phone,
                         type: 'retailer',
-                        href: `/admin/retailers?search=${r.businessDetails?.businessName || r.name}`
+                        href: `/admin/retailers?search=${encodeURIComponent(r.businessDetails?.businessName || r.name)}&highlight=${r._id}`
                     }));
                 }
             } else if (role === "retailer") {

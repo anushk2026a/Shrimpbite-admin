@@ -36,27 +36,43 @@ const statusStyles: any = {
     "Cancelled": "bg-red-50 text-red-600 border-red-100",
 }
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 
 function AdminOrdersContent() {
     const queryClient = useQueryClient()
     const searchParams = useSearchParams()
+    const highlightId = searchParams.get("highlight")
     const [mounted, setMounted] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState("All")
     const [typeFilter, setTypeFilter] = useState("All")
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
     const ORDERS_PER_PAGE = 10
 
+    // Sync search query with URL params
+    useEffect(() => {
+        const orderId = searchParams.get("orderId")
+        if (orderId) setSearchQuery(orderId)
+    }, [searchParams])
+
+    // Debounce the search query (500ms delay)
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery)
+        }, 500)
+        return () => clearTimeout(handler)
+    }, [searchQuery])
+
     // Using React Query for admin orders fetching & caching
-    const { data: ordersData, isLoading: loading } = useQuery({
-        queryKey: ["adminOrders", currentPage, searchQuery, statusFilter, typeFilter],
+    const { data: ordersData, isLoading: loading, isPlaceholderData } = useQuery({
+        queryKey: ["adminOrders", currentPage, debouncedSearchQuery, statusFilter, typeFilter],
         queryFn: async () => {
             const params: any = {
                 page: currentPage,
                 limit: ORDERS_PER_PAGE,
-                search: searchQuery
+                search: debouncedSearchQuery
             };
 
             if (statusFilter !== "All") params.status = statusFilter;
@@ -65,7 +81,8 @@ function AdminOrdersContent() {
             const res = await adminService.getOrders(params)
             return res
         },
-        staleTime: 5 * 1000, // Frequent updates for orders
+        staleTime: 10 * 1000, // 10s stale time
+        placeholderData: keepPreviousData
     })
 
     useEffect(() => {
@@ -107,7 +124,9 @@ function AdminOrdersContent() {
         }
     }, [queryClient])
 
-    if (!mounted || !ordersData?.data) {
+    // Use isPlaceholderData to show skeleton only on INITIAL load, 
+    // but not when searching (UI will stay responsive)
+    if (!mounted || (loading && !ordersData)) {
         return <div className="space-y-6 animate-pulse p-4">
             <div className="h-12 bg-background-soft rounded-xl w-1/4" />
             <div className="grid grid-cols-4 gap-6">
@@ -115,6 +134,16 @@ function AdminOrdersContent() {
             </div>
             <div className="h-96 bg-background-soft rounded-2xl" />
         </div>
+    }
+
+    if (!ordersData?.data) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 space-y-4">
+                <Package size={48} className="text-text-muted opacity-20" />
+                <p className="text-text-muted">No order data available.</p>
+                <button onClick={() => window.location.reload()} className="text-primary font-bold">Try Refreshing</button>
+            </div>
+        )
     }
 
     const { stats: statsObj, orders } = ordersData.data
@@ -214,7 +243,7 @@ function AdminOrdersContent() {
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+                            <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors", (loading || isPlaceholderData) && debouncedSearchQuery && "text-primary animate-pulse")} size={16} />
                             <input
                                 type="text"
                                 placeholder="Search by Order Id"
@@ -223,8 +252,19 @@ function AdminOrdersContent() {
                                     setSearchQuery(e.target.value)
                                     setCurrentPage(1)
                                 }}
-                                className="pl-9 pr-4 py-1.5 rounded-lg bg-background-soft border-transparent text-sm outline-none w-72 focus:ring-2 focus:ring-primary/20 transition-all"
+                                className={cn(
+                                    "pl-9 pr-10 py-1.5 rounded-lg bg-background-soft border-transparent text-sm outline-none w-72 focus:ring-2 focus:ring-primary/20 transition-all font-medium",
+                                    (loading || isPlaceholderData) && "opacity-70 bg-primary/5 cursor-wait"
+                                )}
                             />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors p-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -261,7 +301,13 @@ function AdminOrdersContent() {
                                 </tr>
                             ) : (
                                 orders.map((order: any, i: number) => (
-                                    <tr key={order._id} className="hover:bg-background-soft/50 transition-colors">
+                                    <tr 
+                                        key={order._id} 
+                                        className={cn(
+                                            "hover:bg-background-soft/50 transition-colors",
+                                            highlightId === order._id && "animate-highlight-pulse"
+                                        )}
+                                    >
                                         <td className="px-6 py-4 text-text-muted font-medium">
                                             {(currentPage - 1) * ORDERS_PER_PAGE + i + 1}
                                         </td>

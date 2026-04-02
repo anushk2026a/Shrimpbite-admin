@@ -59,3 +59,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #AEDC81;
 }
+
+@keyframes highlight-pulse {
+  0% { background-color: transparent; }
+  10% { background-color: var(--color-primary-light); }
+  50% { background-color: var(--color-primary-light); }
+  100% { background-color: transparent; }
+}
+
+.animate-highlight-pulse {
+  animation: highlight-pulse 2s ease-in-out forwards;
+}

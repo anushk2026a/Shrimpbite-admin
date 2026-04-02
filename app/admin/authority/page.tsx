@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, ShieldCheck, Edit2, X, Check, AlertTriangle } from "lucide-react";
+import { Shield, Edit2, X, Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import roleService from "@/data/services/roleService";
@@ -16,8 +16,6 @@ export default function AuthorityPage() {
     const [selectedModules, setSelectedModules] = useState<string[]>([]);
     const [showSecurityWarning, setShowSecurityWarning] = useState(false);
     
-    // Bulk Update Mode (UI only for now, can implement later)
-    const [isBulkUpdateMode, setIsBulkUpdateMode] = useState(false);
 
     const availableModules = [
         "Dashboard",
@@ -81,15 +79,6 @@ export default function AuthorityPage() {
         }
     };
 
-    const toggleRoleStatus = async (roleId: string, currentStatus: boolean) => {
-        try {
-            await roleService.updateRole(roleId, { isActive: !currentStatus });
-            toast.success(`Role ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-            queryClient.invalidateQueries({ queryKey: ["adminRoles"] });
-        } catch (err: any) {
-            toast.error("Failed to toggle status");
-        }
-    };
 
     return (
         <div className="space-y-6 relative">
@@ -98,18 +87,6 @@ export default function AuthorityPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Control Authority</h1>
                     <p className="text-text-muted">Manage system-level permissions and access controls.</p>
                 </div>
-                <button 
-                    onClick={() => setIsBulkUpdateMode(!isBulkUpdateMode)}
-                    className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-medium shadow-sm",
-                        isBulkUpdateMode 
-                            ? "bg-gray-100 text-gray-700"
-                            : "bg-primary text-white hover:bg-primary-dark shadow-primary/20"
-                    )}
-                >
-                    {isBulkUpdateMode ? <X size={16} /> : <ShieldCheck size={16} />}
-                    {isBulkUpdateMode ? "Cancel Updates" : "Update Permissions"}
-                </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-border-custom overflow-hidden shadow-sm flex flex-col min-h-[400px]">
@@ -155,16 +132,12 @@ export default function AuthorityPage() {
                                         </td>
                                         <td className="px-6 py-4 font-bold">{role.activeCapacity || 0}</td>
                                         <td className="px-6 py-4">
-                                            <button 
-                                                onClick={() => isBulkUpdateMode && toggleRoleStatus(role._id, role.isActive)}
-                                                disabled={!isBulkUpdateMode}
-                                                className={cn(
-                                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all",
-                                                    role.isActive ? "bg-primary-light text-primary" : "bg-red-50 text-red-500",
-                                                    isBulkUpdateMode && "hover:ring-2 hover:ring-offset-1 cursor-pointer"
-                                                )}>
+                                            <span className={cn(
+                                                "px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all tracking-widest",
+                                                role.isActive ? "bg-primary-light text-primary" : "bg-red-50 text-red-500"
+                                            )}>
                                                 {role.isActive ? "Active" : "Inactive"}
-                                            </button>
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <button 
