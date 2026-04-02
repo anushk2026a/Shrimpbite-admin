@@ -98,6 +98,13 @@ function AdminOrdersContent() {
 
         socket.on("orderUpdate", (data) => {
             console.log("⚡ Real-time Order Update (Admin):", data)
+            
+            if (data.orderId === "SUB-CANCEL") {
+                toast.info(`Subscription Update: Cancelled by customer`);
+                queryClient.invalidateQueries({ queryKey: ["adminOrders"] });
+                return;
+            }
+
             toast.info(`Order Update: ${data.orderId} is now ${data.status}`)
             
             // OPTION 1: Update the cache directly for ultra-responsiveness

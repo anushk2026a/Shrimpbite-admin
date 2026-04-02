@@ -107,7 +107,14 @@ function OrdersContent() {
                 };
 
                 const newStatus = normalizeStatus(data.status);
-                toast.info(`Order Update: ${newStatus}`)
+
+                if (data.orderId === "SUB-CANCEL") {
+                    toast.info(`Subscription Update: Cancelled by customer`);
+                    queryClient.invalidateQueries({ queryKey: ["retailerOrders"] });
+                    return;
+                }
+
+                toast.info(`Order Update: ${newStatus}`);
 
                 // Update cache directly using React Query
                 queryClient.setQueryData(["retailerOrders"], (prev: any) => {

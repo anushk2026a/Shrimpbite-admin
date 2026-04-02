@@ -30,6 +30,7 @@ interface DetailedItem {
     status: string;
     frequency: string;
     customDays?: string[];
+    isLastDelivery?: boolean;
 }
 
 interface PrepData {
@@ -230,8 +231,13 @@ export default function DailyPrepListPage() {
                                                 <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                                     <Fish size={20} />
                                                 </div>
-                                                <span className="font-black text-primary/80 text-sm tracking-tight uppercase">
+                                                <span className="font-black text-primary/80 text-sm tracking-tight uppercase flex items-center gap-2">
                                                     {item.productName}
+                                                    {item.isLastDelivery && (
+                                                        <span className="text-[9px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 flex items-center gap-1 animate-pulse">
+                                                            🚩 FINAL DELIVERY
+                                                        </span>
+                                                    )}
                                                 </span>
                                             </div>
                                         </td>
