@@ -44,7 +44,7 @@ interface PrepData {
     detailed: DetailedItem[];
 }
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 
 export default function DailyPrepListPage() {
     const queryClient = useQueryClient()
@@ -52,13 +52,14 @@ export default function DailyPrepListPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    const { data: prepData, isLoading } = useQuery<PrepData>({
+    const { data: prepData, isLoading, isFetching } = useQuery<PrepData>({
         queryKey: ["retailerPrepList", selectedDate.toDateString()],
         queryFn: async () => {
             const response = await retailerService.getPrepList(selectedDate.toISOString())
             return response.data || { summary: [], detailed: [] }
         },
         staleTime: 2 * 60 * 1000,
+        placeholderData: keepPreviousData,
     })
 
     const prepItems = prepData?.summary || []
@@ -118,15 +119,8 @@ export default function DailyPrepListPage() {
         { label: "Day After", date: new Date(new Date().setDate(new Date().getDate() + 2)) },
     ];
 
-    if (isLoading) {
-        return <div className="p-10 space-y-8 animate-pulse text-foreground">
-            <div className="h-10 bg-background-soft rounded-lg w-1/4" />
-            <div className="grid grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-background-soft rounded-[32px]" />)}
-            </div>
-            <div className="h-96 bg-background-soft rounded-[32px]" />
-        </div>
-    }
+    const isDataAvailable = !!prepData;
+    const isActuallyLoading = isLoading && !isDataAvailable;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -160,38 +154,54 @@ export default function DailyPrepListPage() {
                         </button>
                     ))}
                     <div className="w-[1px] h-6 bg-border-custom mx-1" />
-                    <input
-                        type="date"
-                        value={selectedDate.toISOString().split('T')[0]}
-                        onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                        className="text-[10px] font-black uppercase text-primary bg-transparent outline-none cursor-pointer px-2"
-                    />
+                    <div className="relative">
+                        <input
+                            type="date"
+                            value={selectedDate.toISOString().split('T')[0]}
+                            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                            className="text-[10px] font-black uppercase text-primary bg-transparent outline-none cursor-pointer px-2"
+                        />
+                        {isFetching && (
+                            <div className="absolute -top-1 -right-1">
+                                <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Prep Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Subscriptions</p>
-                    <h3 className="text-3xl font-black text-primary">{prepItems.length}</h3>
-                </div>
-                <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Scheduled Weight</p>
-                    <h3 className="text-3xl font-black text-primary">{totalWeight} <span className="text-sm">kg</span></h3>
-                </div>
-                <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">In Progress</p>
-                    <h3 className="text-3xl font-black text-orange-600">{totalOrders - readyOrders}</h3>
-                </div>
-                <div className={cn(
-                    "p-7 rounded-[32px] border-2 shadow-sm transition-colors",
-                    readyOrders === totalOrders && totalOrders > 0 ? "bg-green-50 border-green-200" : "bg-white border-gray-100"
-                )}>
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Packed / Ready</p>
-                    <h3 className={cn("text-3xl font-black", readyOrders === totalOrders && totalOrders > 0 ? "text-green-600" : "text-gray-400")}>
-                        {readyOrders} / {totalOrders}
-                    </h3>
-                </div>
+            <div className={cn(
+                "grid grid-cols-1 md:grid-cols-4 gap-6 transition-opacity",
+                isFetching && !isLoading && "opacity-50"
+            )}>
+                {isActuallyLoading ? (
+                    [1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-background-soft animate-pulse rounded-[32px]" />)
+                ) : (
+                    <>
+                        <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm transition-transform hover:scale-[1.02]">
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Subscriptions</p>
+                            <h3 className="text-3xl font-black text-primary">{prepItems.length}</h3>
+                        </div>
+                        <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm transition-transform hover:scale-[1.02]">
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Total Scheduled Weight</p>
+                            <h3 className="text-3xl font-black text-primary">{totalWeight} <span className="text-sm">kg</span></h3>
+                        </div>
+                        <div className="bg-white p-7 rounded-[32px] border-2 border-gray-100 shadow-sm transition-transform hover:scale-[1.02]">
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">In Progress</p>
+                            <h3 className="text-3xl font-black text-orange-600">{totalOrders - readyOrders}</h3>
+                        </div>
+                        <div className={cn(
+                            "p-7 rounded-[32px] border-2 shadow-sm transition-all hover:scale-[1.02]",
+                            readyOrders === totalOrders && totalOrders > 0 ? "bg-green-50 border-green-200" : "bg-white border-gray-100"
+                        )}>
+                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3 opacity-60">Packed / Ready</p>
+                            <h3 className={cn("text-3xl font-black", readyOrders === totalOrders && totalOrders > 0 ? "text-green-600" : "text-gray-400")}>
+                                {readyOrders} / {totalOrders}
+                            </h3>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Table View */}
@@ -203,7 +213,10 @@ export default function DailyPrepListPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className={cn(
+                    "overflow-x-auto transition-opacity",
+                    isFetching && !isLoading && "opacity-50"
+                )}>
                     <table className="w-full">
                         <thead>
                             <tr className="bg-gray-50/30">
@@ -214,8 +227,15 @@ export default function DailyPrepListPage() {
                                 <th className="px-8 py-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {paginatedItems.length === 0 ? (
+                        <tbody className={cn("divide-y divide-gray-50", isActuallyLoading && "animate-pulse")}>
+                            {isActuallyLoading ? (
+                                [1, 2, 3, 4, 5].map(i => (
+                                    <tr key={i}>
+                                        <td colSpan={5} className="px-8 py-6 h-20 bg-background-soft/50" />
+                                    </tr>
+                                ))
+                            ) : (
+                                paginatedItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center text-text-muted">
@@ -297,7 +317,8 @@ export default function DailyPrepListPage() {
                                         </td>
                                     </tr>
                                 ))
-                            )}
+                            )
+                        )}
                         </tbody>
                     </table>
                 </div>

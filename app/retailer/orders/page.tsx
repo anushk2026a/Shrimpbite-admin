@@ -706,26 +706,30 @@ function OrdersContent() {
                                 </button>
                             </div>
 
-                            {/* Current Status */}
-                            <div className="p-6 border-b flex flex-col gap-4">
-                                <div>
-                                    <p className="text-xs text-text-muted uppercase font-bold mb-2">Current Status</p>
-                                    <span className={cn(
-                                        "px-3 py-1.5 rounded-full text-xs font-black uppercase border",
-                                        statusStyles[selectedOrder.status] || "bg-gray-50 text-gray-600"
-                                    )}>{selectedOrder.status}</span>
-                                </div>
-                                {selectedOrder.subscriptionDetails && (
-                                    <div>
-                                        <p className="text-xs text-text-muted uppercase font-bold mb-2">Subscription Schedule</p>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-bold text-primary">{selectedOrder.subscriptionDetails.frequency}</span>
-                                            {selectedOrder.subscriptionDetails.customDays && selectedOrder.subscriptionDetails.customDays.length > 0 && (
-                                                <p className="text-xs text-text-muted">Days: {selectedOrder.subscriptionDetails.customDays.join(", ")}</p>
-                                            )}
+                            {/* Order Items Breakdown */}
+                            <div className="p-6 border-b bg-background-soft/30">
+                                <p className="text-xs text-text-muted uppercase font-bold mb-4">Order Items</p>
+                                <div className="space-y-3">
+                                    {(selectedOrder.items || []).map((item: any, idx: number) => (
+                                        <div key={idx} className="flex justify-between items-start gap-4 p-3 bg-white rounded-xl border border-border-custom">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-primary uppercase leading-tight">{item.name}</p>
+                                                {item.weightLabel && (
+                                                    <span className="text-[10px] font-black bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase mt-1 inline-block">
+                                                        {item.weightLabel}
+                                                    </span>
+                                                )}
+                                                <p className="text-[11px] text-text-muted mt-1">
+                                                    Qty: <span className="font-bold text-text">{item.quantity}</span>
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-primary">₹{item.price * item.quantity}</p>
+                                                <p className="text-[10px] text-text-muted">₹{item.price}/unit</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Timeline */}
