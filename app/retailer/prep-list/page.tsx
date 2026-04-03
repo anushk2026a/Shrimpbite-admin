@@ -222,9 +222,13 @@ export default function DailyPrepListPage() {
                                         <td className="px-8 py-6">
                                             <span className={cn(
                                                 "font-black text-sm tracking-tighter uppercase",
-                                                item.orderId === "WAITING-BILLING" ? "text-orange-500 italic" : "text-primary"
+                                                item.orderId === "WAITING-BILLING" 
+                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "text-amber-500/50" : "text-orange-500 italic") 
+                                                    : "text-primary"
                                             )}>
-                                                {item.orderId === "WAITING-BILLING" ? "PENDING" : `#${item.orderId}`}
+                                                {item.orderId === "WAITING-BILLING" 
+                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "—" : "PENDING") 
+                                                    : `#${item.orderId}`}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
@@ -271,7 +275,9 @@ export default function DailyPrepListPage() {
                                                     ? "bg-green-50 text-green-600 border border-green-200" 
                                                     : ["Accepted", "Processing", "Preparing", "Shipped", "Out for Delivery", "Rider Assigned", "Rider Accepted"].includes(item.status)
                                                         ? "bg-primary/5 text-primary border border-primary/20"
-                                                        : "bg-gray-50 text-gray-400 border border-gray-100"
+                                                        : (item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled")
+                                                            ? "bg-amber-50 text-amber-600 border border-amber-200"
+                                                            : "bg-gray-50 text-gray-400 border border-gray-100"
                                             )}>
                                                 {item.status}
                                             </div>
