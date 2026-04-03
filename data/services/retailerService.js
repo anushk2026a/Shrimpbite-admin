@@ -93,7 +93,7 @@ const retailerService = {
     },
 
     getPrepList: async (date) => {
-        const response = await apiClient.get("/retailer/prep-list", { params: { date } });
+        const response = await apiClient.get("/retailer/prep-list", { params: { date, _cb: Date.now() } });
         return response.data;
     },
 

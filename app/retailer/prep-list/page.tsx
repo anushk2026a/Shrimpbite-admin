@@ -32,6 +32,11 @@ interface DetailedItem {
     frequency: string;
     customDays?: string[];
     isLastDelivery?: boolean;
+    pauseMetrics?: {
+        type: string;
+        duration: string;
+        resumeDate: string;
+    } | null;
 }
 
 interface PrepData {
@@ -53,15 +58,18 @@ export default function DailyPrepListPage() {
             const response = await retailerService.getPrepList(selectedDate.toISOString())
             return response.data || { summary: [], detailed: [] }
         },
-        staleTime: 2 * 60 * 1000, 
+        staleTime: 2 * 60 * 1000,
     })
 
     const prepItems = prepData?.summary || []
     const detailedItems = prepData?.detailed || []
 
-    // Pagination Logic
-    const totalPages = Math.ceil(detailedItems.length / itemsPerPage);
-    const paginatedItems = detailedItems.slice(
+    const activeDetailedItems = detailedItems.filter(item => !item.status.includes("Paused") && !item.status.includes("Vacation"));
+    const pausedDetailedItems = detailedItems.filter(item => item.status.includes("Paused") || item.status.includes("Vacation"));
+
+    // Pagination Logic for Active Items
+    const totalPages = Math.ceil(activeDetailedItems.length / itemsPerPage);
+    const paginatedItems = activeDetailedItems.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -76,7 +84,7 @@ export default function DailyPrepListPage() {
         if (userId) {
             // Join specific retailer room
             socket.emit("join", `retailer_${userId}`)
-            
+
             const handleSync = () => {
                 queryClient.invalidateQueries({ queryKey: ["retailerPrepList"] })
             }
@@ -129,13 +137,13 @@ export default function DailyPrepListPage() {
                         {isToday ? "Subscription Prep" : isFuture ? "Future Prep Prediction" : "Historical Prep"}
                     </h1>
                     <p className="text-text-muted mt-1 font-bold">
-                        {isFuture 
+                        {isFuture
                             ? `Predicted inventory for ${selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}`
                             : "Scheduled subscription orders requiring preparation for today."
                         }
                     </p>
                 </div>
-                
+
                 <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border-2 border-gray-100 shadow-sm">
                     {dateOptions.map((opt) => (
                         <button
@@ -152,8 +160,8 @@ export default function DailyPrepListPage() {
                         </button>
                     ))}
                     <div className="w-[1px] h-6 bg-border-custom mx-1" />
-                    <input 
-                        type="date" 
+                    <input
+                        type="date"
                         value={selectedDate.toISOString().split('T')[0]}
                         onChange={(e) => setSelectedDate(new Date(e.target.value))}
                         className="text-[10px] font-black uppercase text-primary bg-transparent outline-none cursor-pointer px-2"
@@ -218,16 +226,21 @@ export default function DailyPrepListPage() {
                                 </tr>
                             ) : (
                                 paginatedItems.map((item) => (
-                                    <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
+                                    <tr key={item.id} className={cn(
+                                        "group transition-all",
+                                        (item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled")
+                                            ? "opacity-75 bg-gray-50/80 saturate-50"
+                                            : "hover:bg-gray-50/50"
+                                    )}>
                                         <td className="px-8 py-6">
                                             <span className={cn(
                                                 "font-black text-sm tracking-tighter uppercase",
-                                                item.orderId === "WAITING-BILLING" 
-                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "text-amber-500/50" : "text-orange-500 italic") 
+                                                item.orderId === "WAITING-BILLING"
+                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "text-amber-500/50" : "text-orange-500 italic")
                                                     : "text-primary"
                                             )}>
-                                                {item.orderId === "WAITING-BILLING" 
-                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "—" : "PENDING") 
+                                                {item.orderId === "WAITING-BILLING"
+                                                    ? ((item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled") ? "—" : "PENDING")
                                                     : `#${item.orderId}`}
                                             </span>
                                         </td>
@@ -271,8 +284,8 @@ export default function DailyPrepListPage() {
                                         <td className="px-8 py-6 text-center">
                                             <div className={cn(
                                                 "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                                item.status === "Delivered" || item.status === "Completed" 
-                                                    ? "bg-green-50 text-green-600 border border-green-200" 
+                                                item.status === "Delivered" || item.status === "Completed"
+                                                    ? "bg-green-50 text-green-600 border border-green-200"
                                                     : ["Accepted", "Processing", "Preparing", "Shipped", "Out for Delivery", "Rider Assigned", "Rider Accepted"].includes(item.status)
                                                         ? "bg-primary/5 text-primary border border-primary/20"
                                                         : (item.status.includes("Paused") || item.status.includes("Vacation") || item.status === "Cancelled")
@@ -320,6 +333,91 @@ export default function DailyPrepListPage() {
                     </div>
                 )}
             </div>
+
+            {/* Second Table: Vacation & Paused Orders  */}
+            {pausedDetailedItems.length > 0 && (
+                <div className="bg-white rounded-[40px] border-2 border-amber-100/50 shadow-sm overflow-hidden mb-20 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+                    <div className="p-8 border-b border-amber-50/50 bg-amber-50/30 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-black text-amber-600 tracking-tight uppercase">Vacation & Paused Orders</h3>
+                            <p className="text-xs text-amber-600/70 font-bold uppercase tracking-widest mt-1">Orders skipped for {isFuture ? "the selected date" : "today"}</p>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-amber-50/10">
+                                    <th className="px-8 py-5 text-left text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Order ID</th>
+                                    <th className="px-8 py-5 text-left text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Product</th>
+                                    <th className="px-8 py-5 text-center text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Frequency</th>
+                                    <th className="px-8 py-5 text-right text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Quantity</th>
+                                    <th className="px-8 py-5 text-center text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Pause Type</th>
+                                    <th className="px-8 py-5 text-center text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Duration</th>
+                                    <th className="px-8 py-5 text-center text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Resume Date</th>
+                                    <th className="px-8 py-5 text-center text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em]">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-amber-50">
+                                {pausedDetailedItems.map((item) => (
+                                    <tr key={item.id} className="group transition-all opacity-80 bg-gray-50/50 saturate-50 hover:saturate-100 hover:opacity-100">
+                                        <td className="px-8 py-6">
+                                            <span className="font-black text-sm tracking-tighter uppercase text-amber-500/50">
+                                                —
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+                                                    <Fish size={20} />
+                                                </div>
+                                                <span className="font-black text-gray-700 text-sm tracking-tight uppercase flex items-center gap-2">
+                                                    {item.productName}
+                                                    {item.weightLabel && (
+                                                        <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                                            {item.weightLabel}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[9px] font-black uppercase tracking-wider border border-gray-200">
+                                                ↻ {item.frequency}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <span className="font-black text-lg tracking-tighter text-gray-600">
+                                                {item.quantity} <span className="text-[10px] opacity-60 ml-0.5">{item.unit}</span>
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <span className="font-bold text-xs text-gray-500 uppercase tracking-widest">
+                                                {item.pauseMetrics?.type || "Unknown"}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <span className="font-bold text-xs text-gray-500 uppercase tracking-widest">
+                                                {item.pauseMetrics?.duration || "-"}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <span className="font-black text-xs text-amber-600 uppercase tracking-widest">
+                                                {item.pauseMetrics?.resumeDate || "-"}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-200">
+                                                {item.status}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
