@@ -453,7 +453,7 @@ export default function RidersPage() {
                                                         <p className="text-sm font-black text-foreground">{selectedRider.vehicleDetails?.vehicleType} • {selectedRider.vehicleDetails?.plateNumber}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4 group">
+                                                {/* <div className="flex items-center gap-4 group">
                                                     <div className="w-10 h-10 rounded-xl bg-background-soft flex items-center justify-center text-text-muted group-hover:bg-primary/10 group-hover:text-primary transition-all">
                                                         <MapPin size={18} />
                                                     </div>
@@ -463,7 +463,7 @@ export default function RidersPage() {
                                                             {selectedRider.currentLocation ? `${selectedRider.currentLocation.lat.toFixed(4)}, ${selectedRider.currentLocation.lng.toFixed(4)}` : 'No location data'}
                                                         </p>
                                                     </div>
-                                                </div>
+                                                </div> */}
                                             </div>
                                         </div>
                                     </div>
