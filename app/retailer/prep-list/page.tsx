@@ -11,6 +11,7 @@ interface PrepSummary {
     productName: string;
     category: string;
     quantity: number;
+    totalWeight: number;
     unit: string;
     orderCount: number;
     subscriptionCount: number;
@@ -26,6 +27,7 @@ interface DetailedItem {
     productId: string;
     productName: string;
     quantity: number;
+    totalWeight: number;
     weightLabel?: string;
     unit: string;
     status: string;
@@ -106,7 +108,7 @@ export default function DailyPrepListPage() {
         }
     }, [queryClient])
 
-    const totalWeight = prepItems.reduce((sum, item) => sum + item.quantity, 0).toFixed(1)
+    const totalWeight = prepItems.reduce((sum, item) => sum + (item.totalWeight || 0), 0).toFixed(1)
     const totalOrders = prepItems.reduce((sum, item) => sum + item.orderCount, 0)
     const readyOrders = prepItems.reduce((sum, item) => sum + item.processedCount, 0)
 
@@ -298,7 +300,7 @@ export default function DailyPrepListPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <span className="font-black text-lg tracking-tighter text-primary">
-                                                {item.quantity} <span className="text-[10px] opacity-60 ml-0.5">{item.unit}</span>
+                                                {item.totalWeight ?? item.quantity} <span className="text-[10px] opacity-60 ml-0.5">{item.unit}</span>
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-center">
@@ -409,7 +411,7 @@ export default function DailyPrepListPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <span className="font-black text-lg tracking-tighter text-gray-600">
-                                                {item.quantity} <span className="text-[10px] opacity-60 ml-0.5">{item.unit}</span>
+                                                {item.totalWeight ?? item.quantity} <span className="text-[10px] opacity-60 ml-0.5">{item.unit}</span>
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-center">
