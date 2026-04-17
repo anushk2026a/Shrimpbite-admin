@@ -4,15 +4,17 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import {
     Search,
+    Filter,
+    Download,
     MoreVertical,
     Eye,
-    Download,
     CheckCircle,
     Package,
     RefreshCw,
-    ChevronRight,
+    X,
     Lock,
-    Clock
+    Clock,
+    ChevronRight
 } from "lucide-react"
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
@@ -31,10 +33,19 @@ const statusStyles: any = {
     "Preparing": "bg-indigo-50 text-indigo-600 border-indigo-100",
     "Shipped": "bg-blue-50 text-blue-600 border-blue-100",
     "Out for Delivery": "bg-orange-50 text-orange-600 border-orange-100",
+    "Out For Delivery": "bg-orange-50 text-orange-600 border-orange-100",
+    "Out_for_delivery": "bg-orange-50 text-orange-600 border-orange-100",
     "Delivered": "bg-green-50 text-green-600 border-green-100",
     "Completed": "bg-green-50 text-green-600 border-green-100",
     "Cancelled": "bg-red-50 text-red-100 border-red-100",
 }
+
+const getStatusStyle = (status: string) => {
+    if (!status) return "bg-gray-50 text-gray-600 border-gray-100";
+    if (statusStyles[status]) return statusStyles[status];
+    const key = Object.keys(statusStyles).find(k => k.toLowerCase().replace(/_/g, ' ') === status.toLowerCase().replace(/_/g, ' '));
+    return key ? statusStyles[key] : "bg-gray-50 text-gray-600 border-gray-100";
+};
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
@@ -47,7 +58,8 @@ function OrdersContent() {
     const [statusFilter, setStatusFilter] = useState<"All" | "Pending" | "Completed">("All")
     const [selectedOrder, setSelectedOrder] = useState<any>(null)
     const [currentPage, setCurrentPage] = useState<number>(1)
-    const [processingStatusConfirm, setProcessingStatusConfirm] = useState<{orderId: string, nextStatus: string, productName: string} | null>(null)
+    const [processingStatusConfirm, setProcessingStatusConfirm] = useState<{ orderId: string, nextStatus: string, productName: string } | null>(null)
+    const [showInvoice, setShowInvoice] = useState<any>(null)
 
     // Tooltip State
     const [hoveredOrderId, setHoveredOrderId] = useState<string | null>(null)
@@ -131,10 +143,10 @@ function OrdersContent() {
                         const newOrder = {
                             id: data.orderId,
                             product: data.data?.items?.map((i: any) => {
-                                    const name = i.product?.name || "Product";
-                                    const weight = i.weightLabel ? ` (${i.weightLabel})` : "";
-                                    return `${i.quantity}x ${name}${weight}`;
-                                }).join(", ") || (data.data?.product || "New Order"),
+                                const name = i.product?.name || "Product";
+                                const weight = i.weightLabel ? ` (${i.weightLabel})` : "";
+                                return `${i.quantity}x ${name}${weight}`;
+                            }).join(", ") || (data.data?.product || "New Order"),
                             date: new Date(data.data?.createdAt || new Date()).toLocaleString("en-IN", {
                                 timeZone: "Asia/Kolkata",
                                 day: "2-digit",
@@ -147,15 +159,30 @@ function OrdersContent() {
                             payment: data.data?.paymentStatus || "Paid",
                             status: newStatus,
                             orderType: data.data?.orderType || (data.orderId.startsWith("SUB-") ? "Subscription" : "One-time"),
-                            rider: data.data?.rider,
-                            subscriptionDetails: data.data?.subscriptionDetails
+                            items: data.data?.items?.map((i: any) => ({
+                                name: i.product?.name || "Product",
+                                weightLabel: i.weightLabel || "",
+                                quantity: i.quantity,
+                                price: i.price || 0
+                            })) || [{
+                                name: data.data?.product || "New Order",
+                                weightLabel: "",
+                                quantity: 1,
+                                price: data.data?.totalAmount || 0
+                            }]
                         };
                         updatedOrders = [newOrder, ...prev.orders];
                     }
 
                     const total = updatedOrders.length;
-                    const pending = updatedOrders.filter((o: any) => ['Pending', 'Accepted', 'Processing', 'Preparing', 'Shipped', 'Out for Delivery', 'Rider Assigned'].includes(o.status)).length;
-                    const completed = updatedOrders.filter((o: any) => ['Delivered', 'Completed'].includes(o.status)).length;
+                    const pending = updatedOrders.filter((o: any) => {
+                        const s = o.status?.toLowerCase() || "";
+                        return ['pending', 'accepted', 'processing', 'preparing', 'shipped', 'out for delivery', 'rider assigned', 'rider accepted'].includes(s);
+                    }).length;
+                    const completed = updatedOrders.filter((o: any) => {
+                        const s = o.status?.toLowerCase() || "";
+                        return ['delivered', 'completed'].includes(s);
+                    }).length;
 
                     return {
                         ...prev,
@@ -450,7 +477,11 @@ function OrdersContent() {
                                     </tr>
                                 ) : (
                                     paginatedOrders.map((order: any) => (
-                                        <tr key={order.id} className="hover:bg-background-soft/50 transition-colors">
+                                        <tr
+                                            key={order.id}
+                                            onClick={() => setShowInvoice(order)}
+                                            className="hover:bg-background-soft/50 transition-colors cursor-pointer group/row"
+                                        >
                                             <td className="px-6 py-4 font-bold text-primary">{order.id}</td>
                                             <td className="px-6 py-4">
                                                 {order.orderType === "Subscription" ? (
@@ -497,7 +528,7 @@ function OrdersContent() {
                                             <td className="px-6 py-4">
                                                 <span className={cn(
                                                     "px-3 py-1 rounded-full text-[11px] font-black uppercase border whitespace-nowrap",
-                                                    statusStyles[order.status] || "bg-gray-50 text-gray-600 border-gray-100"
+                                                    getStatusStyle(order.status)
                                                 )}>
                                                     {order.status}
                                                 </span>
@@ -528,7 +559,11 @@ function OrdersContent() {
                                                         >
                                                             <select
                                                                 value={order.rider?._id || ""}
-                                                                onChange={(e) => handleAssignRider(order.id, e.target.value)}
+                                                                onChange={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleAssignRider(order.id, e.target.value);
+                                                                }}
+                                                                onClick={(e) => e.stopPropagation()}
                                                                 disabled={isLocked}
                                                                 className={cn(
                                                                     "text-xs bg-background-soft border-transparent rounded p-1 outline-none focus:ring-1 focus:ring-primary/30 transition-all w-full",
@@ -596,7 +631,10 @@ function OrdersContent() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
-                                                        onClick={() => setSelectedOrder(order)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedOrder(order);
+                                                        }}
                                                         className="p-2 hover:bg-primary-light text-text-muted hover:text-primary rounded-lg transition-colors"
                                                         title="View status history"
                                                     >
@@ -616,7 +654,10 @@ function OrdersContent() {
 
                                                         return (
                                                             <button
-                                                                onClick={() => !isTerminal && handleStatusUpdate(order.id, nextStatus)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!isTerminal) handleStatusUpdate(order.id, nextStatus);
+                                                                }}
                                                                 disabled={isTerminal}
                                                                 className={cn(
                                                                     "p-2 rounded-lg transition-colors",
@@ -817,6 +858,155 @@ function OrdersContent() {
                                 className="flex-1 py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
                             >
                                 Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Invoice Detail Modal */}
+            {showInvoice && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/20 backdrop-blur-xl animate-in fade-in duration-300"
+                        onClick={() => setShowInvoice(null)}
+                    />
+                    <div className="relative bg-[#F8FAFC] rounded-[32px] border border-white/40 shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="bg-white/60 p-6 flex items-center justify-between border-b border-gray-200/50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-primary">
+                                    <div className="w-6 h-6 border-2 border-primary rounded-md flex items-center justify-center font-black text-[10px]">₹</div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">Invoice {showInvoice.id}</h3>
+                                    <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-widest">{showInvoice.date}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowInvoice(null)}
+                                className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8 no-scrollbar">
+                            {/* Status Bar */}
+                            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
+                                <span className={cn(
+                                    "px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest",
+                                    getStatusStyle(showInvoice.status)
+                                )}>
+                                    {showInvoice.status}
+                                </span>
+                                <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                                    <RefreshCw size={12} className={showInvoice.payment === "Paid" ? "text-primary" : "text-warning"} />
+                                    {showInvoice.paymentMethod || "COD"} • {showInvoice.payment}
+                                </div>
+                            </div>
+
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Customer */}
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Customer Details</p>
+                                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
+                                                <Search size={16} /> {/* Generic avatar icon replacement */}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-slate-800">{showInvoice.customerName || "Customer"}</p>
+                                                <p className="text-[10px] font-bold text-slate-400">{showInvoice.customerPhone || "9625792949"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 border-t border-gray-50 flex gap-3 text-slate-500">
+                                            <Package size={14} className="flex-shrink-0 mt-0.5" />
+                                            <p className="text-[11px] leading-relaxed font-medium">Sec-44, Gurugram, India, 122003</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Delivery Info */}
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Delivery Info</p>
+                                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm min-h-[140px] flex flex-col justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
+                                                <RefreshCw size={16} /> {/* Generic bike icon replacement */}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Partner Assigned</p>
+                                                <p className="text-sm font-black text-slate-800 mt-0.5">{showInvoice.rider?.name || "Unassigned"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-blue-50 rounded-lg p-2.5 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                            <p className="text-[10px] font-bold text-blue-600 uppercase">Live Status: {showInvoice.status}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Order Summary */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Order Summary</p>
+                                    <span className="bg-slate-100 px-2 py-0.5 rounded text-[9px] font-black text-slate-500 uppercase">{showInvoice.items?.length || 1} Items</span>
+                                </div>
+                                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                                    <div className="bg-slate-50 px-5 py-3 border-b border-gray-100 flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>Product</span>
+                                        <div className="flex gap-16">
+                                            <span>Qty</span>
+                                            <span className="w-16 text-right">Price</span>
+                                        </div>
+                                    </div>
+                                    <div className="divide-y divide-gray-50">
+                                        {(showInvoice.items || []).map((item: any, idx: number) => (
+                                            <div key={idx} className="p-5 flex items-center justify-between group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary group-hover:bg-primary/5 transition-colors">
+                                                        <Package size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-black text-slate-800">
+                                                            {item.name}
+                                                            {item.weightLabel && <span className="text-primary ml-1">({item.weightLabel})</span>}
+                                                        </p>
+                                                        <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap">₹{item.price} / unit</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-16">
+                                                    <span className="bg-slate-50 px-3 py-1 rounded-full text-xs font-bold text-slate-700">x{item.quantity}</span>
+                                                    <p className="w-20 text-right text-sm font-black text-primary">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="bg-blue-50/30 p-5 flex flex-col items-end gap-1">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
+                                        <p className="text-xl font-black text-primary leading-none">₹{showInvoice.price}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="p-6 bg-white border-t flex gap-3">
+                            <button
+                                onClick={() => setShowInvoice(null)}
+                                className="flex-1 py-4 rounded-2xl border border-slate-200 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => window.print()}
+                                className="flex-[2] py-4 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                            >
+                                <Download size={16} />
+                                Print Invoice
                             </button>
                         </div>
                     </div>
