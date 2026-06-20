@@ -6,6 +6,7 @@ import Sidebar from "@/components/layout/Sidebar"
 import Topbar from "@/components/layout/Topbar"
 import { cn } from "@/lib/utils"
 import useAuthStore from "@/data/store/useAuthStore"
+import NewOrderAlert from "@/components/retailer/NewOrderAlert"
 
 export default function RetailerLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -70,6 +71,7 @@ export default function RetailerLayout({ children }: { children: React.ReactNode
                     {children}
                 </main>
             </div>
+            {status === "approved" && <NewOrderAlert />}
         </div>
     )
 }
