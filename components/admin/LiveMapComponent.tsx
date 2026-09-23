@@ -60,18 +60,20 @@ export default function LiveMapComponent({ retailers, customers }: { retailers: 
 
                 {/* Customers */}
                 {customers.map((c, idx) => {
-                    // Depending on how customer location is stored, fallback to primary or nested
-                    const lat = c.location?.latitude || c.latitude;
-                    const lng = c.location?.longitude || c.longitude;
+                    // Customers store locations in an 'addresses' array. We use the default one, or the first one.
+                    const defaultAddress = c.addresses?.find((a: any) => a.isDefault) || c.addresses?.[0];
+                    const lat = defaultAddress?.latitude;
+                    const lng = defaultAddress?.longitude;
                     
                     if (!lat || !lng) return null;
                     
                     return (
                         <Marker key={`cust-${idx}`} position={[lat, lng]} icon={customerIcon}>
                             <Popup>
-                                <strong>{c.name || 'Customer'}</strong><br/>
+                                <strong>{c.fullName || c.name || 'Customer'}</strong><br/>
                                 Role: App User<br/>
-                                Email: {c.email || 'N/A'}
+                                Email: {c.email || 'N/A'}<br/>
+                                Phone: {c.phoneNumber || 'N/A'}
                             </Popup>
                         </Marker>
                     );

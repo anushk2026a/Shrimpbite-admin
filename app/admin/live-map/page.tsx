@@ -36,7 +36,10 @@ export default function LiveMapPage() {
     
     // Filter out users/retailers that don't have valid coordinates
     const validRetailers = retailers.filter((r: any) => r.businessDetails?.location?.latitude && r.businessDetails?.location?.longitude)
-    const validCustomers = customers.filter((c: any) => (c.location?.latitude || c.latitude) && (c.location?.longitude || c.longitude))
+    const validCustomers = customers.filter((c: any) => {
+        const addr = c.addresses?.find((a: any) => a.isDefault) || c.addresses?.[0];
+        return addr?.latitude && addr?.longitude;
+    })
 
     return (
         <div className="space-y-6 pb-20">
