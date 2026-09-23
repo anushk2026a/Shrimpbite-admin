@@ -56,7 +56,14 @@ export default function LiveMapPage() {
                     </div>
                     <div>
                         <p className="text-sm text-text-muted font-medium">Mapped Retailers</p>
-                        <h3 className="text-2xl font-bold">{loadingRetailers ? <Loader2 className="animate-spin w-4 h-4" /> : validRetailers.length}</h3>
+                        <h3 className="text-2xl font-bold">
+                            {loadingRetailers ? <Loader2 className="animate-spin w-4 h-4" /> : `${validRetailers.length} / ${retailers.length}`}
+                        </h3>
+                        {retailers.length > validRetailers.length && (
+                            <p className="text-[10px] text-red-500 font-medium leading-tight mt-1">
+                                {retailers.length - validRetailers.length} missing GPS coordinates
+                            </p>
+                        )}
                     </div>
                 </div>
                 
@@ -66,7 +73,14 @@ export default function LiveMapPage() {
                     </div>
                     <div>
                         <p className="text-sm text-text-muted font-medium">Mapped Customers</p>
-                        <h3 className="text-2xl font-bold">{loadingUsers ? <Loader2 className="animate-spin w-4 h-4" /> : validCustomers.length}</h3>
+                        <h3 className="text-2xl font-bold">
+                            {loadingUsers ? <Loader2 className="animate-spin w-4 h-4" /> : `${validCustomers.length} / ${customers.length}`}
+                        </h3>
+                        {customers.length > validCustomers.length && (
+                            <p className="text-[10px] text-red-500 font-medium leading-tight mt-1">
+                                {customers.length - validCustomers.length} missing GPS coordinates
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
