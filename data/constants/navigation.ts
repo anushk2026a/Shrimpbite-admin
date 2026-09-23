@@ -10,6 +10,7 @@ import {
     Wallet,
     BellRing,
     CalendarCheck,
+    Map,
     LucideIcon
 } from "lucide-react"
 
@@ -31,6 +32,7 @@ export const adminMenu: MenuGroup[] = [
             { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
             { name: "Retailers", icon: Users, href: "/admin/retailers" },
             { name: "App Users", icon: Users, href: "/admin/users" },
+            { name: "Live Map", icon: Map, href: "/admin/live-map" },
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
