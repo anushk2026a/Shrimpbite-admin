@@ -26,7 +26,8 @@ export default function StoreSettingsPage() {
             city: "",
             state: "",
             pincode: "",
-            landmark: ""
+            landmark: "",
+            deliveryRadius: 10
         }
     })
 
@@ -56,7 +57,8 @@ export default function StoreSettingsPage() {
                     city: profile.businessDetails?.location?.city || "",
                     state: profile.businessDetails?.location?.state || "",
                     pincode: profile.businessDetails?.location?.pincode || "",
-                    landmark: profile.businessDetails?.location?.landmark || ""
+                    landmark: profile.businessDetails?.location?.landmark || "",
+                    deliveryRadius: profile.businessDetails?.location?.deliveryRadius || 10
                 }
             })
         }
@@ -217,6 +219,21 @@ export default function StoreSettingsPage() {
                                         value={formData.location.pincode}
                                         onChange={e => setFormData({ ...formData, location: { ...formData.location, pincode: e.target.value } })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-background-soft border-transparent outline-none text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold flex items-center gap-2">
+                                        Delivery Radius (km)
+                                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold">New</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="50"
+                                        value={formData.location.deliveryRadius}
+                                        onChange={e => setFormData({ ...formData, location: { ...formData.location, deliveryRadius: parseInt(e.target.value) || 10 } })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-background-soft border-transparent focus:bg-white focus:border-primary outline-none text-sm"
+                                        placeholder="e.g. 10"
                                     />
                                 </div>
                             </div>
