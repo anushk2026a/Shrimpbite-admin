@@ -43,6 +43,7 @@ export const adminMenu: MenuGroup[] = [
         items: [
             { name: "Admin role", icon: UserCog, href: "/admin/roles" },
             { name: "Control Authority", icon: ShieldCheck, href: "/admin/authority" },
+            { name: "System Settings", icon: UserCog, href: "/admin/settings" },
         ]
     }
 ]

@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Store, MapPin, Upload, Save, Loader2, X, Phone, Mail } from "lucide-react"
+import { Store, MapPin, Upload, Save, Loader2, X, Phone, Mail, Navigation } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import dynamic from 'next/dynamic'
+
+const LocationPickerModal = dynamic(() => import('@/components/retailer/LocationPickerModal'), { ssr: false })
 import retailerService from "@/data/services/retailerService"
 import useAuthStore from "@/data/store/useAuthStore"
 
@@ -13,6 +16,7 @@ export default function StoreSettingsPage() {
     const queryClient = useQueryClient()
     const { user } = useAuthStore()
     const [saving, setSaving] = useState(false)
+    const [isMapOpen, setIsMapOpen] = useState(false)
     const [uploading, setUploading] = useState(false)
     const [formData, setFormData] = useState({
         businessName: "",
@@ -27,7 +31,9 @@ export default function StoreSettingsPage() {
             state: "",
             pincode: "",
             landmark: "",
-            deliveryRadius: 10
+            deliveryRadius: 10,
+            latitude: null as number | null,
+            longitude: null as number | null,
         }
     })
 
@@ -58,7 +64,9 @@ export default function StoreSettingsPage() {
                     state: profile.businessDetails?.location?.state || "",
                     pincode: profile.businessDetails?.location?.pincode || "",
                     landmark: profile.businessDetails?.location?.landmark || "",
-                    deliveryRadius: profile.businessDetails?.location?.deliveryRadius || 10
+                    deliveryRadius: profile.businessDetails?.location?.deliveryRadius || 10,
+                    latitude: profile.businessDetails?.location?.latitude || null,
+                    longitude: profile.businessDetails?.location?.longitude || null,
                 }
             })
         }
@@ -184,11 +192,20 @@ export default function StoreSettingsPage() {
 
                     {/* Address */}
                     <section className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm space-y-6">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                                <MapPin size={20} />
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                                    <MapPin size={20} />
+                                </div>
+                                <h3 className="text-lg font-bold">Store Location</h3>
                             </div>
-                            <h3 className="text-lg font-bold">Store Location</h3>
+                            <button
+                                onClick={() => setIsMapOpen(true)}
+                                className="text-sm font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-2"
+                            >
+                                <Navigation size={16} />
+                                {formData.location.latitude ? "Update Pin" : "Set on Map"}
+                            </button>
                         </div>
 
                         <div className="space-y-4">
@@ -272,6 +289,17 @@ export default function StoreSettingsPage() {
                     </section>
                 </div>
             </div>
+            
+            <LocationPickerModal
+                isOpen={isMapOpen}
+                onClose={() => setIsMapOpen(false)}
+                initialLat={formData.location.latitude}
+                initialLng={formData.location.longitude}
+                onSave={(lat, lng) => {
+                    setFormData({ ...formData, location: { ...formData.location, latitude: lat, longitude: lng } });
+                    setIsMapOpen(false);
+                }}
+            />
         </div>
     )
 }
