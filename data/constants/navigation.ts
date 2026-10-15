@@ -36,6 +36,7 @@ export const adminMenu: MenuGroup[] = [
             { name: "Order Management", icon: ShoppingCart, href: "/admin/orders" },
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
+            { name: "Transactions", icon: ArrowLeftRight, href: "/admin/transactions" },
         ]
     },
     {
