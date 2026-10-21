@@ -11,6 +11,7 @@ import {
     BellRing,
     CalendarCheck,
     Map,
+    Ticket,
     LucideIcon
 } from "lucide-react"
 
@@ -37,6 +38,7 @@ export const adminMenu: MenuGroup[] = [
             { name: "Payout Settlements", icon: Wallet, href: "/admin/payouts" },
             { name: "Communication Hub", icon: BellRing, href: "/admin/communication" },
             { name: "Transactions", icon: ArrowLeftRight, href: "/admin/transactions" },
+            { name: "Coupons & Offers", icon: Ticket, href: "/admin/coupons" },
         ]
     },
     {
