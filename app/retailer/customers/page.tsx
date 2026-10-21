@@ -18,7 +18,8 @@ import {
     RefreshCw,
     X,
     Calendar,
-    CreditCard
+    CreditCard,
+    Pencil
 } from "lucide-react"
 import {
     AreaChart,
@@ -59,6 +60,21 @@ export default function RetailerCustomersPage() {
     })
     const [addingCustomer, setAddingCustomer] = useState(false)
     const [customerError, setCustomerError] = useState("")
+
+    // Edit Customer Form
+    const [showEditCustomerModal, setShowEditCustomerModal] = useState(false)
+    const [editingCustomer, setEditingCustomer] = useState<any>(null)
+    const [editCustomerData, setEditCustomerData] = useState({
+        fullName: "",
+        phoneNumber: "",
+        email: "",
+        address: "",
+        city: "Bangalore",
+        state: "Karnataka",
+        pincode: ""
+    })
+    const [savingEditCustomer, setSavingEditCustomer] = useState(false)
+    const [editCustomerError, setEditCustomerError] = useState("")
 
     // POS Order Form
     const [posOrderType, setPosOrderType] = useState<"One-time" | "Subscription">("One-time")
@@ -147,6 +163,48 @@ export default function RetailerCustomersPage() {
             setCustomerError(err?.response?.data?.message || err.message || "Failed to add customer")
         } finally {
             setAddingCustomer(false)
+        }
+    }
+
+    const openEditCustomerModal = (customer: any) => {
+        setEditingCustomer(customer)
+        setEditCustomerError("")
+        const primaryAddr = customer.addresses?.[0] || customer.address || ""
+        const addrStr = typeof primaryAddr === 'string' ? primaryAddr : (primaryAddr.fullAddress || "")
+        setEditCustomerData({
+            fullName: customer.name || customer.fullName || "",
+            phoneNumber: (customer.phone || customer.phoneNumber || "").replace(/^\+91/, ""),
+            email: customer.email && customer.email !== "N/A" ? customer.email : "",
+            address: addrStr,
+            city: typeof primaryAddr === 'object' && primaryAddr?.city ? primaryAddr.city : "Bangalore",
+            state: typeof primaryAddr === 'object' && primaryAddr?.state ? primaryAddr.state : "Karnataka",
+            pincode: typeof primaryAddr === 'object' && primaryAddr?.pincode ? primaryAddr.pincode : ""
+        })
+        setShowEditCustomerModal(true)
+    }
+
+    const handleUpdateCustomer = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setEditCustomerError("")
+        if (!editCustomerData.fullName || !editCustomerData.phoneNumber) {
+            setEditCustomerError("Customer name and phone number are required.")
+            return
+        }
+
+        setSavingEditCustomer(true)
+        try {
+            const custId = editingCustomer?.id || editingCustomer?._id
+            const res = await apiClient.put(`/retailer/customers/${custId}`, editCustomerData)
+            if (res.data?.success) {
+                setShowEditCustomerModal(false)
+                setEditingCustomer(null)
+                await refetchCustomers()
+                queryClient.invalidateQueries({ queryKey: ["retailerCustomers"] })
+            }
+        } catch (err: any) {
+            setEditCustomerError(err?.response?.data?.message || err.message || "Failed to update customer")
+        } finally {
+            setSavingEditCustomer(false)
         }
     }
 
@@ -399,16 +457,28 @@ export default function RetailerCustomersPage() {
                                             </td>
 
                                             <td className="px-5 py-4 text-center">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        setSelectedCustomer(c)
-                                                        setShowPosOrderModal(true)
-                                                    }}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition"
-                                                >
-                                                    <ShoppingCart size={13} /> POS Order
-                                                </button>
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            openEditCustomerModal(c)
+                                                        }}
+                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition"
+                                                        title="Edit Customer"
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            setSelectedCustomer(c)
+                                                            setShowPosOrderModal(true)
+                                                        }}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition"
+                                                    >
+                                                        <ShoppingCart size={13} /> POS Order
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -448,6 +518,13 @@ export default function RetailerCustomersPage() {
                                 className="w-full py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary/90 transition flex items-center justify-center gap-2"
                             >
                                 <ShoppingCart size={16} /> Create POS Order
+                            </button>
+
+                            <button
+                                onClick={() => openEditCustomerModal(selectedCustomer)}
+                                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border border-border-custom"
+                            >
+                                <Pencil size={14} /> Edit Customer Details
                             </button>
 
                             <button
@@ -569,6 +646,111 @@ export default function RetailerCustomersPage() {
                                     className="px-5 py-2 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition disabled:opacity-50"
                                 >
                                     {addingCustomer ? "Saving..." : "Save Customer"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Edit Existing Customer */}
+            {showEditCustomerModal && editingCustomer && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-border-custom">
+                        <div className="flex items-center justify-between pb-4 border-b border-border-custom">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Edit Customer Profile</h3>
+                                <p className="text-xs text-text-muted">Update customer contact or address details.</p>
+                            </div>
+                            <button onClick={() => setShowEditCustomerModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {editCustomerError && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold">
+                                {editCustomerError}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleUpdateCustomer} className="mt-5 space-y-3.5">
+                            <div>
+                                <label className="text-xs font-bold text-gray-700 uppercase">Customer Full Name *</label>
+                                <input
+                                    type="text"
+                                    value={editCustomerData.fullName}
+                                    onChange={(e) => setEditCustomerData({ ...editCustomerData, fullName: e.target.value })}
+                                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border bg-background-soft text-sm outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-700 uppercase">Phone Number *</label>
+                                <input
+                                    type="tel"
+                                    value={editCustomerData.phoneNumber}
+                                    onChange={(e) => setEditCustomerData({ ...editCustomerData, phoneNumber: e.target.value })}
+                                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border bg-background-soft text-sm outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-700 uppercase">Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    value={editCustomerData.email}
+                                    onChange={(e) => setEditCustomerData({ ...editCustomerData, email: e.target.value })}
+                                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border bg-background-soft text-sm outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-700 uppercase">Street Address</label>
+                                <textarea
+                                    rows={2}
+                                    value={editCustomerData.address}
+                                    onChange={(e) => setEditCustomerData({ ...editCustomerData, address: e.target.value })}
+                                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border bg-background-soft text-sm outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 resize-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-bold text-gray-700 uppercase">City</label>
+                                    <input
+                                        type="text"
+                                        value={editCustomerData.city}
+                                        onChange={(e) => setEditCustomerData({ ...editCustomerData, city: e.target.value })}
+                                        className="mt-1 w-full px-3.5 py-2 rounded-xl border bg-background-soft text-sm outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-700 uppercase">Pincode</label>
+                                    <input
+                                        type="text"
+                                        value={editCustomerData.pincode}
+                                        onChange={(e) => setEditCustomerData({ ...editCustomerData, pincode: e.target.value })}
+                                        className="mt-1 w-full px-3.5 py-2 rounded-xl border bg-background-soft text-sm outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-3 flex justify-end gap-3 border-t border-border-custom">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditCustomerModal(false)}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold border text-gray-600 hover:bg-gray-50 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={savingEditCustomer}
+                                    className="px-5 py-2 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition disabled:opacity-50"
+                                >
+                                    {savingEditCustomer ? "Updating..." : "Save Changes"}
                                 </button>
                             </div>
                         </form>
