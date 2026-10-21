@@ -67,7 +67,7 @@ export default function RetailerLayout({ children }: { children: React.ReactNode
             {status === "approved" && <Sidebar />}
             <div className="flex-1 flex flex-col min-w-0">
                 {status === "approved" && <Topbar />}
-                <main className={cn("flex-1 overflow-y-auto overflow-x-hidden", status === "approved" ? "p-6" : "p-0")}>
+                <main className={cn("flex-1 overflow-y-auto overflow-x-hidden", status === "approved" ? "p-4 sm:p-5" : "p-0")}>
                     {children}
                 </main>
             </div>

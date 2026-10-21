@@ -320,44 +320,44 @@ export default function RetailerCustomersPage() {
     )
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-8">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Store Customers & POS</h1>
-                    <p className="text-sm text-text-muted mt-0.5">
+                    <h1 className="text-xl font-bold tracking-tight text-gray-900">Store Customers & POS</h1>
+                    <p className="text-xs text-text-muted mt-0.5">
                         Manage your customer base, register walk-in buyers, create One-time / Subscription orders with Paid/Dues, and print bills.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => setShowAddCustomerModal(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm"
                     >
-                        <UserPlus size={18} /> Add New Customer
+                        <UserPlus size={15} /> Add New Customer
                     </button>
                 </div>
             </div>
 
             {/* Metrics & Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+                <div className="lg:col-span-1 space-y-2.5">
                     {stats.map((stat, index) => (
-                        <div key={index} className="bg-white p-5 rounded-2xl border border-border-custom shadow-sm flex items-center justify-between">
+                        <div key={index} className="bg-white p-3 rounded-xl border border-border-custom shadow-sm flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">{stat.title}</p>
-                                <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+                                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-0.5">{stat.title}</p>
+                                <h3 className="text-lg font-bold text-gray-900 leading-none">{stat.value}</h3>
                             </div>
-                            <div className={cn("p-3 rounded-xl", stat.color)}>
-                                <stat.icon size={22} />
+                            <div className={cn("p-2 rounded-lg", stat.color)}>
+                                <stat.icon size={18} />
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-border-custom shadow-sm overflow-hidden min-h-[260px]">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">Customer Acquisition (Last 7 Days)</h3>
-                    <div className="h-[180px] w-full">
+                <div className="lg:col-span-2 bg-white p-3.5 rounded-xl border border-border-custom shadow-sm overflow-hidden flex flex-col justify-between">
+                    <h3 className="text-xs font-bold text-gray-900 mb-1">Customer Acquisition (Last 7 Days)</h3>
+                    <div className="h-[120px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={customersData.chartData}>
                                 <defs>
@@ -367,10 +367,10 @@ export default function RetailerCustomersPage() {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#868889" }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#868889" }} />
-                                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
-                                <Area type="monotone" dataKey="customers" stroke="#6CC51D" strokeWidth={3} fillOpacity={1} fill="url(#colorGrowth)" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#868889" }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#868889" }} />
+                                <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 10px rgba(0,0,0,0.08)", fontSize: "11px" }} />
+                                <Area type="monotone" dataKey="customers" stroke="#6CC51D" strokeWidth={2.5} fillOpacity={1} fill="url(#colorGrowth)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -378,38 +378,38 @@ export default function RetailerCustomersPage() {
             </div>
 
             {/* Customers Table + Action Sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-3 bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden flex flex-col">
-                    <div className="p-5 border-b border-border-custom flex items-center justify-between">
-                        <h3 className="text-base font-bold text-gray-900">Customer Directory</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3.5">
+                <div className="lg:col-span-3 bg-white rounded-xl border border-border-custom shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-3 border-b border-border-custom flex items-center justify-between">
+                        <h3 className="text-xs font-bold text-gray-900">Customer Directory</h3>
                         <div className="relative">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by name or phone..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 pr-4 py-1.5 rounded-xl bg-background-soft border-transparent text-sm outline-none w-64 focus:bg-white focus:ring-2 focus:ring-primary/20"
+                                className="pl-8 pr-3 py-1 rounded-lg bg-background-soft border-transparent text-xs outline-none w-56 focus:bg-white focus:ring-1 focus:ring-primary/30"
                             />
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto flex-1 min-h-[400px]">
+                    <div className="overflow-x-auto flex-1">
                         <table className="w-full text-left">
-                            <thead className="bg-primary/5 text-xs font-bold text-primary uppercase sticky top-0 z-10 backdrop-blur-sm">
+                            <thead className="bg-primary/5 text-[10px] font-bold text-primary uppercase sticky top-0 z-10 backdrop-blur-sm">
                                 <tr>
-                                    <th className="px-5 py-4">Customer</th>
-                                    <th className="px-5 py-4">Contact</th>
-                                    <th className="px-5 py-4">Orders</th>
-                                    <th className="px-5 py-4">Total Spent</th>
-                                    <th className="px-5 py-4">Category</th>
-                                    <th className="px-5 py-4 text-center">POS Action</th>
+                                    <th className="px-3.5 py-2">Customer</th>
+                                    <th className="px-3.5 py-2">Contact</th>
+                                    <th className="px-3.5 py-2">Orders</th>
+                                    <th className="px-3.5 py-2">Total Spent</th>
+                                    <th className="px-3.5 py-2">Category</th>
+                                    <th className="px-3.5 py-2 text-center">POS Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border-custom text-sm">
+                            <tbody className="divide-y divide-border-custom text-xs">
                                 {filteredCustomers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
+                                        <td colSpan={6} className="px-4 py-8 text-center text-text-muted text-xs">
                                             No customers found matching &quot;{searchQuery}&quot;
                                         </td>
                                     </tr>
@@ -423,31 +423,31 @@ export default function RetailerCustomersPage() {
                                                 selectedCustomer?.id === c.id && "bg-background-soft/60"
                                             )}
                                         >
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-full overflow-hidden border bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                                            <td className="px-3.5 py-2">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-7 h-7 rounded-full overflow-hidden border bg-primary/10 flex items-center justify-center font-bold text-primary text-[10px] shrink-0">
                                                         {c.name.slice(0, 2).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <span className="font-bold text-gray-900 block">{c.name}</span>
+                                                        <span className="font-semibold text-gray-900 block leading-tight">{c.name}</span>
                                                         {c.isManualCustomer && (
-                                                            <span className="text-[10px] font-semibold text-primary uppercase">Manual Walk-in</span>
+                                                            <span className="text-[9px] font-semibold text-primary uppercase">Manual Walk-in</span>
                                                         )}
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 font-medium text-text-muted">{c.phone}</td>
+                                            <td className="px-3.5 py-2 font-medium text-text-muted">{c.phone}</td>
 
-                                            <td className="px-5 py-4">
-                                                <span className="font-bold text-gray-900">{c.orderCount} Orders</span>
+                                            <td className="px-3.5 py-2">
+                                                <span className="font-semibold text-gray-900">{c.orderCount} Orders</span>
                                             </td>
 
-                                            <td className="px-5 py-4 font-bold text-primary">₹{c.spend}</td>
+                                            <td className="px-3.5 py-2 font-bold text-primary">₹{c.spend}</td>
 
-                                            <td className="px-5 py-4">
+                                            <td className="px-3.5 py-2">
                                                 <span className={cn(
-                                                    "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase inline-block",
+                                                    "px-2 py-0.5 rounded-full text-[9px] font-black uppercase inline-block",
                                                     c.status === "VIP" ? "bg-purple-100 text-purple-700" :
                                                     c.status === "New" ? "bg-blue-100 text-blue-700" :
                                                     "bg-emerald-100 text-emerald-700"
@@ -456,17 +456,17 @@ export default function RetailerCustomersPage() {
                                                 </span>
                                             </td>
 
-                                            <td className="px-5 py-4 text-center">
-                                                <div className="flex items-center justify-center gap-1.5">
+                                            <td className="px-3.5 py-2 text-center">
+                                                <div className="flex items-center justify-center gap-1">
                                                     <button
                                                         onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            openEditCustomerModal(c)
+                                                             e.stopPropagation()
+                                                             openEditCustomerModal(c)
                                                         }}
-                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition"
+                                                        className="p-1 rounded-md text-gray-400 hover:text-primary hover:bg-primary/10 transition"
                                                         title="Edit Customer"
                                                     >
-                                                        <Pencil size={14} />
+                                                        <Pencil size={13} />
                                                     </button>
                                                     <button
                                                         onClick={(e) => {
@@ -474,9 +474,9 @@ export default function RetailerCustomersPage() {
                                                             setSelectedCustomer(c)
                                                             setShowPosOrderModal(true)
                                                         }}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition"
+                                                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-md text-xs font-bold transition"
                                                     >
-                                                        <ShoppingCart size={13} /> POS Order
+                                                        <ShoppingCart size={12} /> POS Order
                                                     </button>
                                                 </div>
                                             </td>
@@ -490,55 +490,55 @@ export default function RetailerCustomersPage() {
 
                 {/* Selected Customer Card & Action Panel */}
                 {selectedCustomer ? (
-                    <div className="bg-white rounded-2xl border border-border-custom shadow-sm p-6 space-y-6 h-fit sticky top-6">
+                    <div className="bg-white rounded-xl border border-border-custom shadow-sm p-3.5 space-y-3.5 h-fit sticky top-4">
                         <div className="text-center">
-                            <div className="w-16 h-16 rounded-full bg-primary/10 overflow-hidden mx-auto mb-3 border-2 border-primary/20 flex items-center justify-center font-bold text-primary text-xl">
+                            <div className="w-12 h-12 rounded-full bg-primary/10 overflow-hidden mx-auto mb-2 border border-primary/20 flex items-center justify-center font-bold text-primary text-base">
                                 {selectedCustomer.name.slice(0, 2).toUpperCase()}
                             </div>
-                            <h3 className="font-bold text-lg text-gray-900">{selectedCustomer.name}</h3>
-                            <p className="text-xs text-text-muted flex items-center justify-center gap-1 mt-1">
-                                <Phone size={12} /> {selectedCustomer.phone}
+                            <h3 className="font-bold text-sm text-gray-900 leading-tight">{selectedCustomer.name}</h3>
+                            <p className="text-[11px] text-text-muted flex items-center justify-center gap-1 mt-0.5">
+                                <Phone size={10} /> {selectedCustomer.phone}
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border-custom">
-                            <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50">
-                                <p className="text-[10px] text-text-muted uppercase font-bold mb-1">Total Orders</p>
-                                <p className="text-lg font-bold text-gray-900">{selectedCustomer.orderCount}</p>
+                        <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-border-custom">
+                            <div className="bg-background-soft p-2 rounded-lg border border-border-custom/50">
+                                <p className="text-[9px] text-text-muted uppercase font-bold mb-0.5">Orders</p>
+                                <p className="text-sm font-bold text-gray-900">{selectedCustomer.orderCount}</p>
                             </div>
-                            <div className="bg-background-soft p-3 rounded-xl border border-border-custom/50">
-                                <p className="text-[10px] text-text-muted uppercase font-bold mb-1">Total Spent</p>
-                                <p className="text-lg font-bold text-primary">₹{selectedCustomer.spend}</p>
+                            <div className="bg-background-soft p-2 rounded-lg border border-border-custom/50">
+                                <p className="text-[9px] text-text-muted uppercase font-bold mb-0.5">Total Spent</p>
+                                <p className="text-sm font-bold text-primary">₹{selectedCustomer.spend}</p>
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <button
                                 onClick={() => setShowPosOrderModal(true)}
-                                className="w-full py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary/90 transition flex items-center justify-center gap-2"
+                                className="w-full py-2 bg-primary text-white rounded-lg text-xs font-bold shadow-sm hover:bg-primary/90 transition flex items-center justify-center gap-1.5"
                             >
-                                <ShoppingCart size={16} /> Create POS Order
+                                <ShoppingCart size={14} /> Create POS Order
                             </button>
 
                             <button
                                 onClick={() => openEditCustomerModal(selectedCustomer)}
-                                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border border-border-custom"
+                                className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 border border-border-custom"
                             >
-                                <Pencil size={14} /> Edit Customer Details
+                                <Pencil size={12} /> Edit Customer Details
                             </button>
 
                             <button
                                 onClick={() => setShowHistoryModal(true)}
-                                className="w-full py-2.5 bg-background-soft text-gray-700 hover:bg-gray-100 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border border-border-custom"
+                                className="w-full py-1.5 bg-background-soft text-gray-700 hover:bg-gray-100 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 border border-border-custom"
                             >
-                                <TrendingUp size={14} /> View Order History
+                                <TrendingUp size={12} /> View Order History
                             </button>
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl border border-border-custom shadow-sm p-6 flex flex-col items-center justify-center text-center h-[300px] text-text-muted">
-                        <Users size={40} className="mb-3 opacity-20" />
-                        <p className="text-sm">Select a customer to initiate orders</p>
+                    <div className="bg-white rounded-xl border border-border-custom shadow-sm p-4 flex flex-col items-center justify-center text-center h-[220px] text-text-muted">
+                        <Users size={32} className="mb-2 opacity-20" />
+                        <p className="text-xs">Select a customer to initiate orders</p>
                     </div>
                 )}
             </div>

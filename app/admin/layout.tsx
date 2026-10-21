@@ -54,9 +54,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <ForcePasswordReset onClose={() => setDismissedReset(true)} />
             )}
             <Sidebar />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
                 <Topbar />
-                <main className="p-6 overflow-y-auto">
+                <main className="p-4 sm:p-5 overflow-y-auto flex-1">
                     {children}
                 </main>
             </div>

@@ -192,77 +192,77 @@ export default function AdminCouponsPage() {
     })
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Coupons & Special Offers</h1>
-                    <p className="text-sm text-text-muted mt-1">
+                    <h1 className="text-xl font-bold tracking-tight text-gray-900">Coupons & Special Offers</h1>
+                    <p className="text-xs text-text-muted mt-0.5">
                         Create and manage promotional campaigns, festival offers, and discount codes.
                     </p>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm"
                 >
-                    <Plus size={18} /> Create New Offer
+                    <Plus size={15} /> Create New Offer
                 </button>
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                        <Ticket size={24} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-white p-3 rounded-xl border border-border-custom shadow-sm flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Ticket size={18} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-text-muted uppercase">Total Campaigns</p>
-                        <h3 className="text-2xl font-bold text-gray-900">{stats.totalCampaigns}</h3>
+                        <p className="text-[10px] font-semibold text-text-muted uppercase">Total Campaigns</p>
+                        <h3 className="text-lg font-bold text-gray-900 leading-none mt-0.5">{stats.totalCampaigns}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
-                        <CheckCircle size={24} />
+                <div className="bg-white p-3 rounded-xl border border-border-custom shadow-sm flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                        <CheckCircle size={18} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-text-muted uppercase">Active Offers</p>
-                        <h3 className="text-2xl font-bold text-emerald-600">{stats.activeCoupons}</h3>
+                        <p className="text-[10px] font-semibold text-text-muted uppercase">Active Offers</p>
+                        <h3 className="text-lg font-bold text-emerald-600 leading-none mt-0.5">{stats.activeCoupons}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-                        <TrendingUp size={24} />
+                <div className="bg-white p-3 rounded-xl border border-border-custom shadow-sm flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                        <TrendingUp size={18} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-text-muted uppercase">Total Redemptions</p>
-                        <h3 className="text-2xl font-bold text-blue-600">{stats.totalRedemptions}</h3>
+                        <p className="text-[10px] font-semibold text-text-muted uppercase">Total Redemptions</p>
+                        <h3 className="text-lg font-bold text-blue-600 leading-none mt-0.5">{stats.totalRedemptions}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-border-custom shadow-sm flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-purple-50 text-purple-600">
-                        <DollarSign size={24} />
+                <div className="bg-white p-3 rounded-xl border border-border-custom shadow-sm flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
+                        <DollarSign size={18} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-text-muted uppercase">Subsidized Savings</p>
-                        <h3 className="text-2xl font-bold text-purple-600">₹{stats.totalSubsidized.toLocaleString()}</h3>
+                        <p className="text-[10px] font-semibold text-text-muted uppercase">Subsidized Savings</p>
+                        <h3 className="text-lg font-bold text-purple-600 leading-none mt-0.5">₹{stats.totalSubsidized.toLocaleString()}</h3>
                     </div>
                 </div>
             </div>
 
             {/* Table & Controls */}
-            <div className="bg-white rounded-2xl border border-border-custom shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-border-custom flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <div className="bg-white rounded-xl border border-border-custom shadow-sm overflow-hidden">
+                <div className="p-3 border-b border-border-custom flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                         <input
                             type="text"
                             placeholder="Search coupon by code or title..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-background-soft rounded-xl text-sm border-transparent focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition"
+                            className="w-full pl-8 pr-3 py-1 bg-background-soft rounded-lg text-xs border-transparent focus:bg-white focus:ring-1 focus:ring-primary/30 outline-none transition"
                         />
                     </div>
 
@@ -270,7 +270,7 @@ export default function AdminCouponsPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-3.5 py-2 bg-background-soft rounded-xl text-sm border-transparent outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
+                            className="px-2.5 py-1 bg-background-soft rounded-lg text-xs border-transparent outline-none focus:bg-white focus:ring-1 focus:ring-primary/30"
                         >
                             <option value="all">All Status</option>
                             <option value="active">Active Offers</option>
@@ -281,38 +281,38 @@ export default function AdminCouponsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="p-16 flex justify-center">
-                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                    <div className="p-10 flex justify-center">
+                        <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full" />
                     </div>
                 ) : filteredCoupons.length === 0 ? (
-                    <div className="p-16 text-center text-text-muted">
-                        <Ticket className="mx-auto text-gray-300 mb-3" size={40} />
-                        <p className="text-base font-semibold text-gray-700">No coupon offers found</p>
-                        <p className="text-sm mt-1">Create your first discount code to start running promotions.</p>
+                    <div className="p-10 text-center text-text-muted">
+                        <Ticket className="mx-auto text-gray-300 mb-2" size={32} />
+                        <p className="text-sm font-semibold text-gray-700">No coupon offers found</p>
+                        <p className="text-xs mt-0.5">Create your first discount code to start running promotions.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-primary/5 text-xs font-bold text-primary uppercase">
+                            <thead className="bg-primary/5 text-[10px] font-bold text-primary uppercase">
                                 <tr>
-                                    <th className="px-5 py-4">Coupon Code</th>
-                                    <th className="px-5 py-4">Offer Title</th>
-                                    <th className="px-5 py-4">Discount</th>
-                                    <th className="px-5 py-4">Criteria</th>
-                                    <th className="px-5 py-4">Redemptions</th>
-                                    <th className="px-5 py-4">Validity</th>
-                                    <th className="px-5 py-4 text-center">Status</th>
-                                    <th className="px-5 py-4 text-center">Action</th>
+                                    <th className="px-3.5 py-2">Coupon Code</th>
+                                    <th className="px-3.5 py-2">Offer Title</th>
+                                    <th className="px-3.5 py-2">Discount</th>
+                                    <th className="px-3.5 py-2">Criteria</th>
+                                    <th className="px-3.5 py-2">Redemptions</th>
+                                    <th className="px-3.5 py-2">Validity</th>
+                                    <th className="px-3.5 py-2 text-center">Status</th>
+                                    <th className="px-3.5 py-2 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border-custom text-sm">
+                            <tbody className="divide-y divide-border-custom text-xs">
                                 {filteredCoupons.map((coupon) => {
                                     const isExpired = new Date(coupon.validUntil) < new Date()
                                     return (
                                         <tr key={coupon._id} className="hover:bg-background-soft transition-colors">
-                                            <td className="px-5 py-4 font-mono font-bold text-primary">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="px-2.5 py-1 bg-primary/10 rounded-lg text-primary tracking-wide">
+                                            <td className="px-3.5 py-2 font-mono font-bold text-primary">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="px-2 py-0.5 bg-primary/10 rounded-md text-primary tracking-wide text-xs">
                                                         {coupon.code}
                                                     </span>
                                                     <button
@@ -321,42 +321,42 @@ export default function AdminCouponsPage() {
                                                         title="Copy code"
                                                     >
                                                         {copiedCode === coupon.code ? (
-                                                            <Check size={14} className="text-emerald-600" />
+                                                            <Check size={12} className="text-emerald-600" />
                                                         ) : (
-                                                            <Copy size={14} />
+                                                            <Copy size={12} />
                                                         )}
                                                     </button>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <p className="font-semibold text-gray-900">{coupon.title}</p>
+                                            <td className="px-3.5 py-2">
+                                                <p className="font-semibold text-gray-900 leading-tight">{coupon.title}</p>
                                                 {coupon.description && (
-                                                    <p className="text-xs text-text-muted line-clamp-1">{coupon.description}</p>
+                                                    <p className="text-[11px] text-text-muted line-clamp-1">{coupon.description}</p>
                                                 )}
                                             </td>
 
-                                            <td className="px-5 py-4 font-bold text-emerald-600">
+                                            <td className="px-3.5 py-2 font-bold text-emerald-600">
                                                 {coupon.discountType === "percentage" ? (
                                                     <span>{coupon.discountValue}% OFF</span>
                                                 ) : (
                                                     <span>₹{coupon.discountValue} FLAT OFF</span>
                                                 )}
                                                 {coupon.maxDiscountAmount && coupon.discountType === "percentage" && (
-                                                    <p className="text-[11px] font-normal text-text-muted">
+                                                    <p className="text-[10px] font-normal text-text-muted">
                                                         Up to ₹{coupon.maxDiscountAmount}
                                                     </p>
                                                 )}
                                             </td>
 
-                                            <td className="px-5 py-4 text-xs text-text-muted">
+                                            <td className="px-3.5 py-2 text-[11px] text-text-muted">
                                                 <p>Min Order: <span className="font-semibold text-gray-700">₹{coupon.minOrderValue}</span></p>
-                                                <p>Per User Limit: <span className="font-semibold text-gray-700">{coupon.userUsageLimit || 1}</span></p>
+                                                <p>User Limit: <span className="font-semibold text-gray-700">{coupon.userUsageLimit || 1}</span></p>
                                             </td>
 
-                                            <td className="px-5 py-4 text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <td className="px-3.5 py-2 text-[11px]">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-12 bg-gray-200 rounded-full h-1.5 overflow-hidden">
                                                         <div
                                                             className="bg-primary h-full rounded-full"
                                                             style={{
@@ -364,29 +364,29 @@ export default function AdminCouponsPage() {
                                                             }}
                                                         />
                                                     </div>
-                                                    <span className="font-bold text-gray-800">
+                                                    <span className="font-semibold text-gray-800 text-[10px]">
                                                         {coupon.usageCount || 0}/{coupon.usageLimit || "∞"}
                                                     </span>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 text-xs text-text-muted">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Calendar size={13} />
+                                            <td className="px-3.5 py-2 text-[11px] text-text-muted">
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar size={11} />
                                                     <span>Until {new Date(coupon.validUntil).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                                                 </div>
                                                 {isExpired && (
-                                                    <span className="inline-block mt-0.5 px-1.5 py-0.5 bg-red-50 text-red-600 font-bold text-[10px] rounded">
+                                                    <span className="inline-block mt-0.5 px-1 py-0.2 bg-red-50 text-red-600 font-bold text-[9px] rounded">
                                                         EXPIRED
                                                     </span>
                                                 )}
                                             </td>
 
-                                            <td className="px-5 py-4 text-center">
+                                            <td className="px-3.5 py-2 text-center">
                                                 <button
                                                     onClick={() => toggleStatus(coupon)}
                                                     className={cn(
-                                                        "px-3 py-1 rounded-full text-[11px] font-bold border transition",
+                                                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition",
                                                         coupon.isActive && !isExpired
                                                             ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                                                             : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
@@ -396,13 +396,13 @@ export default function AdminCouponsPage() {
                                                 </button>
                                             </td>
 
-                                            <td className="px-5 py-4 text-center">
+                                            <td className="px-3.5 py-2 text-center">
                                                 <button
                                                     onClick={() => handleDelete(coupon._id)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+                                                    className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                                                     title="Delete Coupon"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={13} />
                                                 </button>
                                             </td>
                                         </tr>

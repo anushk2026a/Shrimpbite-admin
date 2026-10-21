@@ -36,10 +36,16 @@
   --radius: 0.75rem;
 }
 
+html {
+  font-size: 13.5px;
+  -webkit-font-smoothing: antialiased;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 /* Custom Scrollbar */

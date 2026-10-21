@@ -141,20 +141,20 @@ export default function Dashboard() {
     ]
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Branded Admin Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-10 rounded-[48px] border-2 border-border-custom shadow-sm relative overflow-hidden group">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-border-custom shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#FF6B35] via-[#FF3B30] to-[#6CC51D] opacity-80" />
-                <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FF6B35]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#FF6B35]/10 transition-colors duration-700" />
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-[#FF6B35]/5 rounded-full blur-2xl pointer-events-none group-hover:bg-[#FF6B35]/10 transition-colors duration-700" />
                 
                 <div className="relative z-10 flex items-center justify-between w-full">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-xl shadow-green-500/20 group-hover:scale-110 transition-transform duration-500">
-                            <TrendingUp size={32} />
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6CC51D] to-[#58a318] flex items-center justify-center text-white shadow-md shadow-green-500/20 group-hover:scale-105 transition-transform duration-500">
+                            <TrendingUp size={20} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Platform Overview</h1>
-                            <p className="text-text-muted mt-1 font-bold text-sm tracking-tight opacity-70">Welcome back, Admin. Monitoring all live metrics.</p>
+                            <h1 className="text-xl font-bold tracking-tight text-primary uppercase">Platform Overview</h1>
+                            <p className="text-text-muted text-xs tracking-tight">Welcome back, Admin. Monitoring all live metrics.</p>
                         </div>
                     </div>
 
@@ -165,8 +165,6 @@ export default function Dashboard() {
                             if (!confirmSync) return;
                             
                             try {
-                                const toastId = "sync-toast";
-                                // Correcting URL to avoid double /api suffix
                                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://api.shrimpbite.in/api"}/cron/generate-subscription-orders`, {
                                     headers: { "x-cron-secret": "shrimpbite_cron_2026_secure" }
                                 });
@@ -181,51 +179,48 @@ export default function Dashboard() {
                                 alert("Failed to connect to sync service.");
                             }
                         }}
-                        className="flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm border border-primary/20"
+                        className="flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 text-primary rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary hover:text-white transition-all shadow-sm border border-primary/20"
                     >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className="w-3.5 h-3.5" />
                         Sync Daily Orders
                     </button>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 {staticCards.map((stat, index) => (
                     <Link key={index} href={stat.href} className={cn(
-                        "bg-white p-7 rounded-[32px] border-2 border-transparent hover:border-gray-100 transition-all group text-foreground relative overflow-hidden",
+                        "bg-white p-4 rounded-xl border border-border-custom hover:border-gray-200 transition-all group text-foreground relative overflow-hidden shadow-sm",
                         stat.shadow
                     )}>
-                        {/* Subtle inner corner accent */}
-                        <div className={cn("absolute top-0 right-0 w-16 h-16 opacity-5 -mr-4 -mt-4 rounded-full", stat.color)} />
-                        
-                        <div className="flex items-center justify-between mb-6 relative">
-                            <div className={cn("p-4 rounded-2xl border transition-transform duration-500 group-hover:rotate-[10deg]", stat.color)}>
-                                <stat.icon size={28} />
+                        <div className="flex items-center justify-between mb-3 relative">
+                            <div className={cn("p-2 rounded-lg border transition-transform duration-500 group-hover:rotate-[6deg]", stat.color)}>
+                                <stat.icon size={18} />
                             </div>
                         </div>
-                        <p className="text-xs font-black text-text-muted mb-2 uppercase tracking-widest opacity-60">{stat.title}</p>
-                        <div className="flex items-center gap-3 relative">
-                            <h3 className="text-3xl font-black tracking-tight">{stat.value}</h3>
+                        <p className="text-[10px] font-bold text-text-muted mb-1 uppercase tracking-wider">{stat.title}</p>
+                        <div className="flex items-center gap-2 relative">
+                            <h3 className="text-xl font-bold tracking-tight">{stat.value}</h3>
                         </div>
-                        <p className="text-[10px] font-bold text-text-muted mt-3 uppercase tracking-widest opacity-40">System-wide Total</p>
+                        <p className="text-[10px] font-medium text-text-muted mt-1 uppercase tracking-wider opacity-60">System-wide Total</p>
                     </Link>
                 ))}
             </div>
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-border-custom shadow-sm">
-                    <div className="flex items-center justify-between mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+                <div className="lg:col-span-2 bg-white p-4 rounded-xl border border-border-custom shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="text-lg font-bold">Platform Orders</h3>
-                            <p className="text-sm text-text-muted">Overall performance tracking (Last 7 Days)</p>
+                            <h3 className="text-sm font-bold">Platform Orders</h3>
+                            <p className="text-xs text-text-muted">Overall performance tracking (Last 7 Days)</p>
                         </div>
-                        <div className="flex items-center gap-2 bg-background-soft p-1 rounded-lg">
-                            <button className="px-3 py-1 text-xs font-medium bg-white shadow-sm rounded-md">Last 7 Days</button>
+                        <div className="flex items-center gap-1.5 bg-background-soft p-1 rounded-md">
+                            <button className="px-2.5 py-0.5 text-xs font-medium bg-white shadow-sm rounded">Last 7 Days</button>
                         </div>
                     </div>
-                    <div className="h-[300px] w-full min-h-0 min-w-0">
+                    <div className="h-[200px] w-full min-h-0 min-w-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={statsData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
@@ -239,26 +234,27 @@ export default function Dashboard() {
                                     dataKey="name"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fontSize: 12, fill: "#868889" }}
-                                    dy={10}
+                                    tick={{ fontSize: 11, fill: "#868889" }}
+                                    dy={5}
                                 />
                                 <YAxis
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fontSize: 12, fill: "#868889" }}
+                                    tick={{ fontSize: 11, fill: "#868889" }}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        borderRadius: "12px",
+                                        borderRadius: "8px",
                                         border: "none",
-                                        boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+                                        boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+                                        fontSize: "11px"
                                     }}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="orders"
                                     stroke="#6CC51D"
-                                    strokeWidth={3}
+                                    strokeWidth={2.5}
                                     fillOpacity={1}
                                     fill="url(#colorOrders)"
                                 />
@@ -267,26 +263,28 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-border-custom shadow-sm flex flex-col">
-                    <h3 className="text-lg font-bold mb-6">Recent Shop Activities</h3>
-                    <div className="space-y-6 flex-1">
-                        {statsData.recentShops.length === 0 ? (
-                            <p className="text-sm text-text-muted">No recent activities.</p>
-                        ) : (
-                            statsData.recentShops.map((shop: any, i: number) => (
-                                <div key={i} className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center shrink-0">
-                                        <ShoppingCart size={18} className="text-primary" />
+                <div className="bg-white p-4 rounded-xl border border-border-custom shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 className="text-sm font-bold mb-3">Recent Shop Activities</h3>
+                        <div className="space-y-3">
+                            {statsData.recentShops.length === 0 ? (
+                                <p className="text-xs text-text-muted">No recent activities.</p>
+                            ) : (
+                                statsData.recentShops.map((shop: any, i: number) => (
+                                    <div key={i} className="flex gap-2.5">
+                                        <div className="w-7 h-7 rounded-full bg-primary-light flex items-center justify-center shrink-0">
+                                            <ShoppingCart size={13} className="text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-foreground leading-tight">New Shop Signed: {shop.businessDetails?.businessName || shop.name}</p>
+                                            <p className="text-[10px] text-text-muted">{new Date(shop.createdAt).toLocaleDateString()}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-foreground">New Shop Signed: {shop.businessDetails?.businessName || shop.name}</p>
-                                        <p className="text-xs text-text-muted">{new Date(shop.createdAt).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
-                    <Link href="/admin/shops" className="block text-center w-full mt-6 py-2 rounded-lg border text-sm font-medium hover:bg-background-soft transition-all text-text-muted hover:text-foreground">
+                    <Link href="/admin/shops" className="block text-center w-full mt-3 py-1.5 rounded-lg border text-xs font-medium hover:bg-background-soft transition-all text-text-muted hover:text-foreground">
                         View All Platform Activities
                     </Link>
                 </div>

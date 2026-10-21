@@ -322,24 +322,24 @@ export default function Topbar() {
     }
 
     return (
-        <header className="h-16 border-b border-border-custom bg-white flex items-center justify-between px-8 sticky top-0 z-40">
-            <div className="flex-1 flex items-center max-w-xl relative" ref={searchRef}>
+        <header className="h-12 border-b border-border-custom bg-white flex items-center justify-between px-4 sticky top-0 z-40 shrink-0">
+            <div className="flex-1 flex items-center max-w-md relative" ref={searchRef}>
                 <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => searchQuery.trim().length > 1 && setShowSearchDropdown(true)}
-                        placeholder="Search data, users, or reports"
-                        className="w-full pl-10 pr-10 py-2 rounded-full bg-background-soft border-transparent focus:border-primary focus:bg-white transition-all text-sm outline-none"
+                        placeholder="Search data, users, or reports..."
+                        className="w-full pl-8 pr-8 py-1 rounded-full bg-background-soft border-transparent focus:border-primary focus:bg-white transition-all text-xs outline-none"
                     />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary p-1"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary p-0.5"
                         >
-                            <X size={14} />
+                            <X size={12} />
                         </button>
                     )}
                 </div>
