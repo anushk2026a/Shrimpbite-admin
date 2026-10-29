@@ -6,7 +6,7 @@ import Sidebar from "@/components/layout/Sidebar"
 import Topbar from "@/components/layout/Topbar"
 import useAuthStore from "@/data/store/useAuthStore"
 import ForcePasswordReset from "@/components/auth/ForcePasswordReset"
-import NewAdminOrderAlert from "@/components/admin/NewAdminOrderAlert"
+import NewAdminOrderAlert, { AdminSoundUnlockBanner } from "@/components/admin/NewAdminOrderAlert"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -49,6 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className="flex h-screen relative">
+            <AdminSoundUnlockBanner />
             <NewAdminOrderAlert />
             {user?.isPasswordResetRequired && !dismissedReset && (
                 <ForcePasswordReset onClose={() => setDismissedReset(true)} />

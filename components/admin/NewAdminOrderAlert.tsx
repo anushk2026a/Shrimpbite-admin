@@ -4,6 +4,62 @@ import { useEffect, useRef, useState } from "react"
 import socket from "@/data/api/socket"
 import useAuthStore from "@/data/store/useAuthStore"
 
+// ─── Sound Unlock Banner ──────────────────────────────────────────────────────
+export function AdminSoundUnlockBanner() {
+    const [unlocked, setUnlocked] = useState(false)
+    const [dismissed, setDismissed] = useState(false)
+
+    useEffect(() => {
+        if (sessionStorage.getItem("shrimpbite_audio_unlocked")) setUnlocked(true)
+    }, [])
+
+    const unlock = () => {
+        try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+            if (AudioContext) {
+                const ctx = new AudioContext()
+                const buf = ctx.createBuffer(1, 1, 22050)
+                const src = ctx.createBufferSource()
+                src.buffer = buf
+                src.connect(ctx.destination)
+                src.start(0)
+                setTimeout(() => ctx.close(), 500)
+            }
+        } catch {}
+        sessionStorage.setItem("shrimpbite_audio_unlocked", "1")
+        setUnlocked(true)
+    }
+
+    if (unlocked || dismissed) return null
+
+    return (
+        <div style={{
+            position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)",
+            zIndex: 99997, background: "#1e293b", color: "#fff",
+            padding: "10px 20px", borderRadius: "12px",
+            display: "flex", alignItems: "center", gap: "12px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)", fontSize: "13px", fontWeight: 600
+        }}>
+            <span>🔔 Enable order alert sounds</span>
+            <button
+                onClick={unlock}
+                style={{
+                    background: "#3B82F6", color: "#fff", border: "none",
+                    padding: "6px 14px", borderRadius: "8px", cursor: "pointer",
+                    fontWeight: 700, fontSize: "13px"
+                }}
+            >Enable</button>
+            <button
+                onClick={() => setDismissed(true)}
+                style={{
+                    background: "transparent", color: "#94a3b8", border: "none",
+                    cursor: "pointer", fontSize: "16px", lineHeight: 1, padding: "0 4px"
+                }}
+            >×</button>
+        </div>
+    )
+}
+
 // ─── Sound ────────────────────────────────────────────────────────────────────
 function playAlertSound() {
     try {
