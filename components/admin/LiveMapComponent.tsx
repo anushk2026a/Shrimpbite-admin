@@ -43,7 +43,7 @@ export default function LiveMapComponent({ retailers, customers }: { retailers: 
                         <div key={`ret-wrapper-${idx}`}>
                             <Marker position={[lat, lng]} icon={retailerIcon}>
                                 <Popup>
-                                    <strong>{r.businessDetails?.businessName || r.name}</strong><br/>
+                                    <strong>{r.businessDetails?.storeDisplayName || r.businessDetails?.businessName || r.name}</strong><br/>
                                     Role: Retailer (Approved)<br/>
                                     Delivery Radius: {radius} km<br/>
                                     Phone: {r.whatsappNumber || r.phone || 'N/A'}
