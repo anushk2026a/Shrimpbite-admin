@@ -41,13 +41,18 @@ export default function RetailerProductsPage() {
     const [searchQuery, setSearchQuery] = useState("")
 
     // Using React Query for inventory fetching & caching
-    const { data: products = [], isLoading: loading } = useQuery<Product[]>({
+    const { data: products = [], isLoading: loading, isError, error, refetch } = useQuery<Product[]>({
         queryKey: ["retailerProducts"],
         queryFn: async () => {
             const response = await retailerService.getProducts()
+            // If API returns 401/403, throw so error UI shows
+            if (response?.message === "Token invalid" || response?.message === "Not authorized") {
+                throw new Error("session_expired")
+            }
             return response.data || []
         },
-        staleTime: 5 * 60 * 1000, // Data stays green for 5 minutes
+        staleTime: 2 * 60 * 1000, // Refresh every 2 minutes
+        retry: 1,
     })
 
     const handleDelete = async (id: string) => {
@@ -148,6 +153,20 @@ export default function RetailerProductsPage() {
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <Loader2 size={32} className="animate-spin text-primary" />
                             <p className="text-sm font-bold text-text-muted uppercase tracking-widest">Loading Inventory...</p>
+                        </div>
+                    ) : isError ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-2">
+                                <AlertCircle size={32} className="text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-red-500">Session Expired</h3>
+                            <p className="text-sm text-text-muted">Your session has expired. Please log out and log in again.</p>
+                            <button
+                                onClick={() => refetch()}
+                                className="px-4 py-2 text-sm font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 transition"
+                            >
+                                Retry
+                            </button>
                         </div>
                     ) : filteredProducts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
